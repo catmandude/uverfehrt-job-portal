@@ -14,7 +14,7 @@ import type {
   PartJobType,
   SubcontractorJobType,
 } from '../../types.ts';
-import { useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import JobEmployees from './JobListDisplays/JobEmployees.tsx';
 import { AddDriverVehicleModal } from './Modals/AddDriverVehicleModal.tsx';
 import JobDriverVehicles from './JobListDisplays/JobDriverVehicles.tsx';
@@ -33,6 +33,7 @@ dayjs.extend(customParseFormat);
 
 const CreateJob = () => {
   const { jobId } = useParams({ strict: false });
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { myPredefinedJobs } = useMyPredefinedJobs();
   const predefinedJob = myPredefinedJobs?.find((job) => String(job.id) === jobId);
@@ -121,6 +122,7 @@ const CreateJob = () => {
           color: 'blue',
         });
         jobForm.reset();
+        navigate({ to: '/job/$jobId/create', params: { jobId: 'new' } });
       }
     },
   });
