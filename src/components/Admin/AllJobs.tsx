@@ -18,7 +18,6 @@ dayjs.extend(customParseFormat);
 
 const options = [
   { label: "All Complete", value: "all" },
-  { label: "Admin Complete", value: "admin_complete" },
   { label: "Admin Incomplete", value: "admin_incomplete" },
 ];
 

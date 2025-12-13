@@ -18,13 +18,16 @@ import type {
 //'http://localhost:8000'
 //'https://unverfehrt-fast-1065632368040.us-central1.run.app/',
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://unverfehrt-fast-1065632368040.us-central1.run.app/',
+  baseURL:
+    import.meta.env.VITE_API_URL || 'https://unverfehrt-fast-1065632368040.us-central1.run.app/', //'https://unverfehrt-fast-1065632368040.us-central1.run.app/',
   headers: { 'Content-Type': 'application/json' },
 });
 
-// -----------------------------
-// Attach access token to requests
-// -----------------------------
+let logoutHandler: (() => void) | null = null;
+
+export const registerLogoutHandler = (fn: () => void) => {
+  logoutHandler = fn;
+};
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
   if (token && config.headers) {
@@ -33,63 +36,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// -----------------------------
-// Refresh Logic
-// -----------------------------
-let isRefreshing = false;
-let refreshQueue: ((token: string) => void)[] = [];
-
 api.interceptors.response.use(
-  (response) => response,
-
+  (res) => res,
   async (error) => {
-    const original = error.config;
-
-    // Only intercept 401s once per request
-    if (error.response?.status === 401 && !original._retry) {
-      original._retry = true;
-
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (!refreshToken) {
-        console.log('No refresh token → logging out');
-        logoutAndRedirect();
-        return;
-      }
-
-      // If NOT refreshing, start refresh
-      if (!isRefreshing) {
-        isRefreshing = true;
-
-        try {
-          // Use RAW axios to avoid interceptors & expired token headers
-          const refreshResponse = await axios.post(
-            `${import.meta.env.VITE_API_URL}/reauthenticate`,
-            { refresh_token: refreshToken },
-            { headers: { 'Content-Type': 'application/json' } }
-          );
-
-          const newToken = refreshResponse.data.accessToken;
-          localStorage.setItem('authToken', newToken);
-
-          // Resolve queued requests
-          refreshQueue.forEach((cb) => cb(newToken));
-          refreshQueue = [];
-        } catch (refreshErr) {
-          console.error('Refresh failed:', refreshErr);
-          logoutAndRedirect();
-          return;
-        } finally {
-          isRefreshing = false;
-        }
-      }
-
-      // Queue requests while refreshing
-      return new Promise((resolve) => {
-        refreshQueue.push((newToken: string) => {
-          original.headers.Authorization = `Bearer ${newToken}`;
-          resolve(api(original)); // re-run original request
-        });
-      });
+    const status = error.response?.status;
+    // ---- AUTO LOGOUT ----
+    if (status === 401) {
+      if (logoutHandler) logoutHandler();
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);
@@ -159,17 +113,56 @@ export const employeesApi = {
     const response = await api.get('/employees');
     return response.data;
   },
+
+  createEmployee: async (data: { firstName: string; lastName: string }): Promise<EmployeeType> => {
+    const response = await api.post('/employees', data);
+    return response.data;
+  },
+
+  deleteEmployee: async (id: number): Promise<void> => {
+    await api.delete(`/employees/${id}`);
+  },
+
   getVehicles: async (): Promise<VehicleType[]> => {
     const response = await api.get('/vehicles');
     return response.data;
   },
+
+  createVehicle: async (data: { name: string }): Promise<VehicleType> => {
+    const response = await api.post('/vehicles', data);
+    return response.data;
+  },
+
+  deleteVehicle: async (id: number): Promise<void> => {
+    await api.delete(`/vehicles/${id}`);
+  },
+
   getEquipment: async (): Promise<EquipmentType[]> => {
     const response = await api.get('/equipment');
     return response.data;
   },
+
+  createEquipment: async (data: { name: string }): Promise<EquipmentType> => {
+    const response = await api.post('/equipment', data);
+    return response.data;
+  },
+
+  deleteEquipment: async (id: number): Promise<void> => {
+    await api.delete(`/equipment/${id}`);
+  },
+
   getSubcontractors: async (): Promise<SubcontractorType[]> => {
     const response = await api.get('/subcontractors');
     return response.data;
+  },
+
+  createSubcontractor: async (data: { name: string }): Promise<SubcontractorType> => {
+    const response = await api.post('/subcontractors', data);
+    return response.data;
+  },
+
+  deleteSubcontractor: async (id: number): Promise<void> => {
+    await api.delete(`/subcontractors/${id}`);
   },
 };
 

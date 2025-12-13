@@ -6,7 +6,7 @@ import {
   redirect,
 } from '@tanstack/react-router';
 import { Login } from './components/Login';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import HomePage from './components/Home';
 import CreateJob from './components/Admin/CreateJob';
 import UtilizeJob from './components/Employee/UtilizeJob';
@@ -21,16 +21,25 @@ import {
   ScrollArea,
   Text,
 } from '@mantine/core';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import AllJobs from './components/Admin/AllJobs';
+import { registerLogoutHandler } from './services/api';
+import { EditEmployees } from './components/Admin/EditEmployees';
+import { EditVehicles } from './components/Admin/EditVehicles';
+import { EditSubcontractors } from './components/Admin/EditSubcontractors';
+import { EditEquipment } from './components/Admin/EditEquipment';
 
-// -------------------------
-// Root Layout with AppShell
-// -------------------------
 function RootLayout() {
   const [opened, setOpened] = useState(false);
 
+  const { logout } = useAuth();
+
+  useEffect(() => {
+    registerLogoutHandler(logout);
+  }, [logout]);
+
+  
   const NavItem = ({ label, to }: { label: string; to: string }) => (
     <NavLink label={label} component={Link} to={to} onClick={() => setOpened(false)} />
   );
@@ -76,8 +85,12 @@ function RootLayout() {
           <Text fw="bold" size="sm" color="dimmed" px="xs" td="underline">
             Admin
           </Text>
-          <NavItem label="Create Job" to="/create-job" />
+          <NavItem label="Create Job for employee" to="/create-job" />
           <NavItem label="All Jobs" to="/all-jobs" />
+          <NavItem label="Manage Employees" to="/admin/employees" />
+          <NavItem label="Manage Vehicles" to="/admin/vehicles" />
+          <NavItem label="Manage Subcontractors" to="/admin/subcontractors" />
+          <NavItem label="Manage Equipment" to="/admin/equipment" />
         </ScrollArea>
       </AppShell.Navbar>
 
@@ -147,6 +160,30 @@ export const adminCreateJobRoute = createRoute({
   component: () => <CreateJob />,
 });
 
+export const adminManageEmployeesRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/admin/employees',
+  component: () => <EditEmployees />,
+});
+
+export const adminManageVehiclesRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/admin/vehicles',
+  component: () => <EditVehicles />,
+});
+
+export const adminManageSubcontractorsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/admin/subcontractors',
+  component: () => <EditSubcontractors />,
+});
+
+export const adminManageEquipmentRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/admin/equipment',
+  component: () => <EditEquipment />,
+});
+
 export const utilizeJobRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/job/$jobId/create',
@@ -171,6 +208,10 @@ const routeTree = rootRoute.addChildren([
     adminCreateJobRoute,
     utilizeJobRoute,
     allAdminExistingJobsRoute,
+    adminManageEmployeesRoute,
+    adminManageVehiclesRoute,
+    adminManageSubcontractorsRoute,
+    adminManageEquipmentRoute,
   ]),
 ]);
 
