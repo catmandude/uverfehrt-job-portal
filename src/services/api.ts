@@ -101,6 +101,12 @@ export const jobsApi = {
     const res = await api.get(`/jobs?selected=${orderType}`);
     return res.data;
   },
+  exportDailyReport: async (date: string): Promise<Blob> => {
+    const response = await api.get<Blob>(`/daily-report?report_date=${date}`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };
 
 export const employeesApi = {

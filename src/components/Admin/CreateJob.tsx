@@ -4,7 +4,6 @@ import {
   NativeSelect,
   Textarea,
   Button,
-  Alert,
   Group,
   Loader,
   Stack,
@@ -17,6 +16,7 @@ import Papa from 'papaparse';
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { employeesApi, jobsApi } from '../../services/api.ts';
+import { notifications } from '@mantine/notifications';
 // import temp from '../assets/template.xlsx'
 
 // interface DataDownloadType {
@@ -44,10 +44,6 @@ const CreateJob = () => {
   const [jobNumber, setJobNumber] = useState<string>('');
   const [location, setLocation] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [showAlert, setShowAlert] = useState<{ str: string; color: string }>({
-    str: '',
-    color: 'blue',
-  });
   const [linksToManuals, setLinkToManual] = useState<string>('');
   // const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   // const [readyJobs, setReadyJobs] = useState<
@@ -86,11 +82,17 @@ const CreateJob = () => {
         createdAt: new Date(),
         isEdit: false,
         date: new Date(),
+        employees: [],
+        subcontractors: [],
+        equipment: [],
+        drivers: [],
+        parts: []
       }),
     onSettled: (data) => {
       if (data) {
-        setShowAlert({
-          str: `Job created for customer: ${customer} that will be done by ${newCreatedByUser?.name}`,
+        notifications.show({
+          title: 'Job Created',
+          message: `Job created for customer: ${customer} that will be done by ${newCreatedByUser?.name}`,
           color: 'blue',
         });
         setLocation('');
@@ -200,15 +202,6 @@ const CreateJob = () => {
 
   return (
     <Stack w="100%" gap="lg" mb="md">
-      {showAlert.str && (
-        <Alert
-          variant="light"
-          color={showAlert.color}
-          title={showAlert.str}
-          withCloseButton
-          onClick={() => setShowAlert({ str: '', color: 'blue' })}
-        />
-      )}
       <Group justify="space-between">
         <Title order={2}>Create New Job {isPending && <Loader size={20} />}</Title>
         {/* <div className={styles.HeaderCSV}>

@@ -45,7 +45,7 @@ export function AddPartsModal({ opened, onClose, jobId, onSubmit }: AddPartsModa
   };
 
   return (
-    <Modal opened={opened} onClose={handleCancel} title="Add Part to Job" size="md">
+    <Modal opened={opened} onClose={handleCancel} title="Add Part to Job" size="md" centered>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
           <TextInput

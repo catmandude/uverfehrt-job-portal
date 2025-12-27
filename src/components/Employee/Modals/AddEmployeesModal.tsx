@@ -63,7 +63,7 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
   };
 
   return (
-    <Modal opened={opened} onClose={handleCancel} title="Add Employee to Job" size="md">
+    <Modal opened={opened} onClose={handleCancel} title="Add Employee to Job" size="md" centered>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
           <MultiSelect
@@ -73,8 +73,16 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
             data={displayEmployees}
             maw="30rem"
           />
-          <TimePicker value={formValues.startTime} onChange={(value) => form.setFieldValue('startTime', value)} format="12h" />
-          <TimePicker value={formValues.endTime} onChange={(value) => form.setFieldValue('endTime', value)} format="12h" />
+          <TimePicker
+            value={formValues.startTime}
+            onChange={(value) => form.setFieldValue('startTime', value)}
+            format="12h"
+          />
+          <TimePicker
+            value={formValues.endTime}
+            onChange={(value) => form.setFieldValue('endTime', value)}
+            format="12h"
+          />
           <Textarea
             label="Description"
             placeholder="Enter job description"

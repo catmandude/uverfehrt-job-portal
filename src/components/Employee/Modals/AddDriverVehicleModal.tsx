@@ -61,7 +61,13 @@ export function AddDriverVehicleModal({
   };
 
   return (
-    <Modal opened={opened} onClose={handleCancel} title="Add Driver/Vehicle to Job" size="md">
+    <Modal
+      opened={opened}
+      onClose={handleCancel}
+      title="Add Driver/Vehicle to Job"
+      size="md"
+      centered
+    >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
           <Select

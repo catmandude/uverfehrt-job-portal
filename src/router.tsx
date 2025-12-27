@@ -58,7 +58,7 @@ function RootLayout() {
           <Group>
             <Burger opened={opened} onClick={() => setOpened(!opened)} size="sm" />
             <Text fw={700} size="lg">
-              Field App
+               Unverfehrt Farm Supply
             </Text>
           </Group>
           <Button
@@ -81,7 +81,7 @@ function RootLayout() {
           </Text>
           <NavItem label="Home" to="/" />
           <NavItem label="Settings" to="/settings" />
-          <NavItem label="Utilize Job" to="/job/new/create" />
+          <NavItem label="Add Job" to="/job/new/create" />
           <Text fw="bold" size="sm" color="dimmed" px="xs" td="underline">
             Admin
           </Text>

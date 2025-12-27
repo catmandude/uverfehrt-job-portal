@@ -61,7 +61,13 @@ export function AddSubcontractorModal({
   };
 
   return (
-    <Modal opened={opened} onClose={handleCancel} title="Add Subcontractor to Job" size="md">
+    <Modal
+      opened={opened}
+      onClose={handleCancel}
+      title="Add Subcontractor to Job"
+      size="md"
+      centered
+    >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
           <Select

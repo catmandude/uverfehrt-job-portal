@@ -44,6 +44,11 @@ export type PredefinedJobType = {
   links: string[];
   id?: number;
   adminCreatedById?: number | null;
+  employees: EmployeeJobType[];
+  subcontractors: SubcontractorJobType[];
+  equipment: EquipmentJobType[];
+  drivers: DriverVehicleJobType[];
+  parts: PartJobType[];
 };
 
 export interface EmployeeType {
@@ -80,7 +85,6 @@ export interface SubcontractorType {
 }
 
 export type EmployeeJobType = {
-  id: number;
   groupId: string;
   jobId: number;
   employeeId: number;
@@ -90,7 +94,6 @@ export type EmployeeJobType = {
 };
 
 export type SubcontractorJobType = {
-  id: number;
   jobId: number;
   subContractorId: number;
   hoursPerMan: number;

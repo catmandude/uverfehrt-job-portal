@@ -48,7 +48,7 @@ export function AddEquipmentModal({ opened, onClose, jobId, onSubmit }: AddEquip
   };
 
   return (
-    <Modal opened={opened} onClose={handleCancel} title="Add Equipment to Job" size="md">
+    <Modal opened={opened} onClose={handleCancel} title="Add Equipment to Job" size="md" centered>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
           <Select

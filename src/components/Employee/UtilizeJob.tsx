@@ -1,5 +1,5 @@
-import { Input, Title, Text, Button, Alert, Group, Loader, Stack, Space } from '@mantine/core';
-import { useEffect, useState } from 'react';
+import { Input, Title, Text, Button, Group, Loader, Stack, Space, Modal } from '@mantine/core';
+import { useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { employeesApi, jobsApi } from '../../services/api.ts';
 import { useForm } from '@mantine/form';
@@ -28,6 +28,7 @@ import { useMyPredefinedJobs } from '../../services/queries.ts';
 import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { notifications } from '@mantine/notifications';
 
 dayjs.extend(customParseFormat);
 
@@ -60,10 +61,7 @@ const CreateJob = () => {
   const [subcontractorOpened, { open: openSubcontractor, close: subcontractorClose }] =
     useDisclosure(false);
   const [partsOpened, { open: openParts, close: partsClose }] = useDisclosure(false);
-  const [showAlert, setShowAlert] = useState<{ str: string; color: string }>({
-    str: '',
-    color: 'blue',
-  });
+  const [confirmOpened, { open: openConfirm, close: confirmClose }] = useDisclosure(false);
 
   const { data: users, isPending } = useQuery({
     queryKey: ['users'],
@@ -80,6 +78,15 @@ const CreateJob = () => {
           jobNumber: predefinedJob.jobNumber,
           createdFromJobId: predefinedJob.id,
           date: predefinedJob.date || String(new Date()),
+          employees: predefinedJob.employees?.map((emp) => ({
+            ...emp,
+            startTime: dayjs(emp.startTime).format('HH:mm'),
+            endTime: dayjs(emp.endTime).format('HH:mm'),
+          })) || [],
+          subcontractors: predefinedJob.subcontractors || [],
+          equipment: predefinedJob.equipment || [],
+          drivers: predefinedJob.drivers || [],
+          parts: predefinedJob.parts || [],
         });
       }
     }
@@ -88,16 +95,24 @@ const CreateJob = () => {
   const newCreatedByUser = users?.find((storeUser) => user?.id === storeUser.id);
 
   const buildDateTime = (date: string | Date, time: string) => {
-    return dayjs(`${date} ${time}`, 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm:ss');
+    console.log('building date time for', date, time);
+    const dateOnly = dayjs(date).format('YYYY-MM-DD');
+    return dayjs(`${dateOnly} ${time}`, 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm:ss');
   };
 
+  const handleSubmitJob = (isComplete: boolean) => {
+    createJobMutation.mutate(!isComplete);
+    confirmClose();
+  };
+
+  console.log('jobValues', jobValues.employees);
   const createJobMutation = useMutation({
-    mutationFn: () =>
+    mutationFn: (isEdit: boolean = false) =>
       jobsApi.utilizeJob({
         customer: jobValues.customer || '',
         jobNumber: jobValues.jobNumber || '',
         date: jobValues.date || new Date(),
-        isEdit: false,
+        isEdit,
         description: predefinedJob?.description || undefined,
         location: predefinedJob?.location || undefined,
         createdFromJobId: predefinedJob?.id || undefined,
@@ -117,28 +132,19 @@ const CreateJob = () => {
       }),
     onSettled: (data) => {
       if (data) {
-        setShowAlert({
-          str: `Job created for customer: ${jobValues.customer} that will be done by ${newCreatedByUser?.name}`,
+        notifications.show({
+          title: 'Job Created',
+          message: `Job ${data.isEdit ? 'saved' : 'created'} for customer: ${jobValues.customer} that will be done by ${newCreatedByUser?.name}`,
           color: 'blue',
-        });
+        })
         jobForm.reset();
         navigate({ to: '/job/$jobId/create', params: { jobId: 'new' } });
       }
     },
   });
 
-  console.log('jobValues', jobValues);
   return (
     <Stack w="100%" gap="lg" mb="md">
-      {showAlert.str && (
-        <Alert
-          variant="light"
-          color={showAlert.color}
-          title={showAlert.str}
-          withCloseButton
-          onClick={() => setShowAlert({ str: '', color: 'blue' })}
-        />
-      )}
       {employeeOpened && (
         <AddEmployeesModal
           opened={employeeOpened}
@@ -147,9 +153,8 @@ const CreateJob = () => {
           onSubmit={(data) =>
             jobForm.setFieldValue(
               'employees',
-              data.map((emp) => ({ ...emp, id: 0 }))
-            )
-          }
+              [...(jobValues.employees || []), ...data]
+            )}
         />
       )}
       {driverVehicleOpened && (
@@ -180,7 +185,7 @@ const CreateJob = () => {
           onSubmit={(data) =>
             jobForm.setFieldValue('subcontractors', [
               ...(jobValues.subcontractors || []),
-              { ...data, id: 0 },
+              data
             ])
           }
         />
@@ -196,7 +201,7 @@ const CreateJob = () => {
         />
       )}
       <Group justify="space-between">
-        <Title order={2}>Utilize Job {isPending && <Loader size={20} />}</Title>
+        <Title order={2}>Add Job {isPending && <Loader size={20} />}</Title>
       </Group>
       <Input.Wrapper label="Customer">
         <Input
@@ -220,6 +225,7 @@ const CreateJob = () => {
         value={jobValues.date}
         onChange={(newDate) => newDate && jobForm.setFieldValue('date', newDate)}
         maw="35rem"
+        firstDayOfWeek={0}
       />
       {!!predefinedJob?.location && (
         <Text>
@@ -280,13 +286,47 @@ const CreateJob = () => {
       </Button>
       <Space h="md" />
       <Button
-        disabled={isPending || !jobValues.customer || !jobValues.jobNumber || !jobValues.date}
+        disabled={
+          createJobMutation.isPending ||
+          isPending ||
+          !jobValues.customer ||
+          !jobValues.jobNumber ||
+          !jobValues.date
+        }
         variant="filled"
-        onClick={() => createJobMutation.mutate()}
+        onClick={openConfirm}
         w="20rem"
       >
-        Create Job
+        Save/Submit Job
       </Button>
+
+      {/* Completion Confirmation Modal */}
+      <Modal
+        opened={confirmOpened}
+        onClose={confirmClose}
+        title="Job Completion Status"
+        centered
+      >
+        <Stack>
+          <Text>Is this job complete?</Text>
+          <Group justify="flex-end">
+            <Button variant="outline" onClick={() => handleSubmitJob(false)}>
+              No, Save as Incomplete
+            </Button>
+            <Button
+              variant="filled"
+              onClick={() => handleSubmitJob(true)}
+              disabled={
+                !jobValues.employees?.length ||
+                !jobValues.drivers?.length ||
+                !jobValues.equipment?.length
+              }
+            >
+              Yes, Mark as Complete
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   );
 };
