@@ -51,10 +51,27 @@ export const useSubcontractors = () => {
   return { subcontractors, subcontractorsLoading };
 };
 
+export const useMyClosedJobs = () => {
+  const { data: myClosedJobs, isPending: myClosedJobsLoading } = useQuery({
+    queryKey: ['my-closed-jobs'],
+    queryFn: () => jobsApi.getMyClosedJobs(),
+  });
+  return { myClosedJobs, myClosedJobsLoading };
+};
+
+export const useJob = (jobId: number | undefined) => {
+  const { data: job, isPending: jobLoading } = useQuery({
+    queryKey: ['job', jobId],
+    queryFn: () => jobsApi.getJobById(jobId),
+    enabled: !!jobId,
+  });
+  return { job, jobLoading };
+};
+
 export const useMyPredefinedJobs = () => {
   const { data: myPredefinedJobs, isPending: myPredefinedJobsLoading } = useQuery({
     queryKey: ['my-predefined-jobs'],
-    queryFn: () => jobsApi.getMyJobs(),
+    queryFn: () => jobsApi.getMyOpenJobs(),
   });
   return { myPredefinedJobs, myPredefinedJobsLoading };
 };
@@ -70,7 +87,7 @@ export const useExistingJobs = (selectedOrders: string) => {
 export const useCreateEmployee = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { firstName: string; lastName: string }) => 
+    mutationFn: (data: { firstName: string; lastName: string }) =>
       employeesApi.createEmployee(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
@@ -91,8 +108,7 @@ export const useDeleteEmployee = () => {
 export const useCreateVehicle = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string }) => 
-      employeesApi.createVehicle(data),
+    mutationFn: (data: { name: string }) => employeesApi.createVehicle(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
     },
@@ -112,8 +128,7 @@ export const useDeleteVehicle = () => {
 export const useCreateSubcontractor = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string }) => 
-      employeesApi.createSubcontractor(data),
+    mutationFn: (data: { name: string }) => employeesApi.createSubcontractor(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subcontractors'] });
     },
@@ -133,8 +148,7 @@ export const useDeleteSubcontractor = () => {
 export const useCreateEquipment = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string }) => 
-      employeesApi.createEquipment(data),
+    mutationFn: (data: { name: string }) => employeesApi.createEquipment(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['equipment'] });
     },

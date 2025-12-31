@@ -31,7 +31,6 @@ const Home = () => {
   const { historyJobs, historyLoading } = useExistingJobs(selectedOrders);
 
   const setOrderType = async (orderType: string) => {
-    console.log('Order type changed to:', orderType);
     setSelectedOrders(orderType);
   };
 

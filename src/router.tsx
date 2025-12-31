@@ -29,17 +29,17 @@ import { EditEmployees } from './components/Admin/EditEmployees';
 import { EditVehicles } from './components/Admin/EditVehicles';
 import { EditSubcontractors } from './components/Admin/EditSubcontractors';
 import { EditEquipment } from './components/Admin/EditEquipment';
+import MyHistory from './components/Employee/MyHistory';
 
 function RootLayout() {
   const [opened, setOpened] = useState(false);
 
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     registerLogoutHandler(logout);
   }, [logout]);
 
-  
   const NavItem = ({ label, to }: { label: string; to: string }) => (
     <NavLink label={label} component={Link} to={to} onClick={() => setOpened(false)} />
   );
@@ -58,7 +58,7 @@ function RootLayout() {
           <Group>
             <Burger opened={opened} onClick={() => setOpened(!opened)} size="sm" />
             <Text fw={700} size="lg">
-               Unverfehrt Farm Supply
+              Unverfehrt Farm Supply
             </Text>
           </Group>
           <Button
@@ -76,21 +76,26 @@ function RootLayout() {
 
       <AppShell.Navbar p="xs">
         <ScrollArea>
-          <Text fw="bold" size="sm" color="dimmed" px="xs" td="underline">
+          <Text fw="bold" size="sm" c="dimmed" px="xs" td="underline">
             Employee
           </Text>
           <NavItem label="Home" to="/" />
           <NavItem label="Settings" to="/settings" />
           <NavItem label="Add Job" to="/job/new/create" />
-          <Text fw="bold" size="sm" color="dimmed" px="xs" td="underline">
-            Admin
-          </Text>
-          <NavItem label="Create Job for employee" to="/create-job" />
-          <NavItem label="All Jobs" to="/all-jobs" />
-          <NavItem label="Manage Employees" to="/admin/employees" />
-          <NavItem label="Manage Vehicles" to="/admin/vehicles" />
-          <NavItem label="Manage Subcontractors" to="/admin/subcontractors" />
-          <NavItem label="Manage Equipment" to="/admin/equipment" />
+          <NavItem label="My History" to="/my-history" />
+          {user?.role === 'admin' && (
+            <>
+              <Text fw="bold" size="sm" c="dimmed" px="xs" td="underline">
+                Admin
+              </Text>
+              <NavItem label="Create Job for employee" to="/create-job" />
+              <NavItem label="All Jobs" to="/all-jobs" />
+              <NavItem label="Manage Employees" to="/admin/employees" />
+              <NavItem label="Manage Vehicles" to="/admin/vehicles" />
+              <NavItem label="Manage Subcontractors" to="/admin/subcontractors" />
+              <NavItem label="Manage Equipment" to="/admin/equipment" />
+            </>
+          )}
         </ScrollArea>
       </AppShell.Navbar>
 
@@ -160,6 +165,12 @@ export const adminCreateJobRoute = createRoute({
   component: () => <CreateJob />,
 });
 
+export const myHistoryRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/my-history',
+  component: () => <MyHistory />,
+});
+
 export const adminManageEmployeesRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/admin/employees',
@@ -205,6 +216,7 @@ const routeTree = rootRoute.addChildren([
   appLayoutRoute.addChildren([
     indexRoute,
     settingsRoute,
+    myHistoryRoute,
     adminCreateJobRoute,
     utilizeJobRoute,
     allAdminExistingJobsRoute,

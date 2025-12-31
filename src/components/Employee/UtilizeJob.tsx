@@ -1,4 +1,15 @@
-import { Input, Title, Text, Button, Group, Loader, Stack, Space, Modal } from '@mantine/core';
+import {
+  Input,
+  Title,
+  Text,
+  Button,
+  Group,
+  Loader,
+  Stack,
+  Space,
+  Modal,
+  Center,
+} from '@mantine/core';
 import { useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { employeesApi, jobsApi } from '../../services/api.ts';
@@ -24,7 +35,7 @@ import { AddSubcontractorModal } from './Modals/AddSubcontractorModal.tsx';
 import JobSubcontractors from './JobListDisplays/JobSubcontractors.tsx';
 import { AddPartsModal } from './Modals/AddPartsModal.tsx';
 import JobParts from './JobListDisplays/JobParts.tsx';
-import { useMyPredefinedJobs } from '../../services/queries.ts';
+import { useJob } from '../../services/queries.ts';
 import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -36,8 +47,7 @@ const CreateJob = () => {
   const { jobId } = useParams({ strict: false });
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { myPredefinedJobs } = useMyPredefinedJobs();
-  const predefinedJob = myPredefinedJobs?.find((job) => String(job.id) === jobId);
+  const { job, jobLoading } = useJob(Number(jobId));
 
   const jobForm = useForm<Partial<JobType>>({
     initialValues: {
@@ -72,30 +82,31 @@ const CreateJob = () => {
 
   useEffect(() => {
     if (jobId && jobId !== 'new') {
-      if (predefinedJob) {
+      if (job) {
         jobForm.setValues({
-          customer: predefinedJob.customer,
-          jobNumber: predefinedJob.jobNumber,
-          createdFromJobId: predefinedJob.id,
-          date: predefinedJob.date || String(new Date()),
-          employees: predefinedJob.employees?.map((emp) => ({
-            ...emp,
-            startTime: dayjs(emp.startTime).format('HH:mm'),
-            endTime: dayjs(emp.endTime).format('HH:mm'),
-          })) || [],
-          subcontractors: predefinedJob.subcontractors || [],
-          equipment: predefinedJob.equipment || [],
-          drivers: predefinedJob.drivers || [],
-          parts: predefinedJob.parts || [],
+          customer: job.customer,
+          jobNumber: job.jobNumber,
+          createdFromJobId: job.isEdit ? job.id : undefined,
+          date: job.isEdit ? job.date : String(new Date()),
+          employees: job.isEdit
+            ? job.employees?.map((emp) => ({
+                ...emp,
+                startTime: dayjs(emp.startTime).format('HH:mm'),
+                endTime: dayjs(emp.endTime).format('HH:mm'),
+              })) || []
+            : [],
+          subcontractors: job.subcontractors || [],
+          equipment: job.equipment || [],
+          drivers: job.drivers || [],
+          parts: job.parts || [],
         });
       }
     }
-  }, [jobId, predefinedJob]);
+  }, [jobId, job]);
 
   const newCreatedByUser = users?.find((storeUser) => user?.id === storeUser.id);
 
   const buildDateTime = (date: string | Date, time: string) => {
-    console.log('building date time for', date, time);
     const dateOnly = dayjs(date).format('YYYY-MM-DD');
     return dayjs(`${dateOnly} ${time}`, 'YYYY-MM-DD HH:mm').format('YYYY-MM-DD HH:mm:ss');
   };
@@ -105,18 +116,17 @@ const CreateJob = () => {
     confirmClose();
   };
 
-  console.log('jobValues', jobValues.employees);
   const createJobMutation = useMutation({
     mutationFn: (isEdit: boolean = false) =>
       jobsApi.utilizeJob({
         customer: jobValues.customer || '',
         jobNumber: jobValues.jobNumber || '',
-        date: jobValues.date || new Date(),
+        date: new Date(jobValues.date || ''),
         isEdit,
-        description: predefinedJob?.description || undefined,
-        location: predefinedJob?.location || undefined,
-        createdFromJobId: predefinedJob?.id || undefined,
-        adminCreatedById: predefinedJob?.adminCreatedById || null,
+        description: job?.description || undefined,
+        location: job?.location || undefined,
+        createdFromJobId: job?.isEdit ? job.id : undefined,
+        adminCreatedById: job?.adminCreatedById || null,
         employees:
           jobValues.employees?.map((emp) => ({
             ...emp,
@@ -128,7 +138,7 @@ const CreateJob = () => {
         subcontractors: jobValues.subcontractors || [],
         parts: jobValues.parts || [],
         createdById: undefined,
-        links: predefinedJob?.links || [],
+        links: job?.links || [],
       }),
     onSettled: (data) => {
       if (data) {
@@ -136,12 +146,25 @@ const CreateJob = () => {
           title: 'Job Created',
           message: `Job ${data.isEdit ? 'saved' : 'created'} for customer: ${jobValues.customer} that will be done by ${newCreatedByUser?.name}`,
           color: 'blue',
-        })
+        });
         jobForm.reset();
-        navigate({ to: '/job/$jobId/create', params: { jobId: 'new' } });
+        return navigate({ to: '/my-history' });
       }
+      notifications.show({
+        title: 'Error',
+        message: 'There was an issue creating the job. Please try again.',
+        color: 'red',
+      });
     },
   });
+
+  if (jobLoading && jobId !== 'new') {
+    return (
+      <Center style={{ height: '100%' }}>
+        <Loader size="md" />
+      </Center>
+    );
+  }
 
   return (
     <Stack w="100%" gap="lg" mb="md">
@@ -151,10 +174,8 @@ const CreateJob = () => {
           onClose={employeeClose}
           jobId={jobId !== 'new' ? Number(jobId) : 0}
           onSubmit={(data) =>
-            jobForm.setFieldValue(
-              'employees',
-              [...(jobValues.employees || []), ...data]
-            )}
+            jobForm.setFieldValue('employees', [...(jobValues.employees || []), ...data])
+          }
         />
       )}
       {driverVehicleOpened && (
@@ -183,10 +204,7 @@ const CreateJob = () => {
           onClose={subcontractorClose}
           jobId={jobId !== 'new' ? Number(jobId) : 0}
           onSubmit={(data) =>
-            jobForm.setFieldValue('subcontractors', [
-              ...(jobValues.subcontractors || []),
-              data
-            ])
+            jobForm.setFieldValue('subcontractors', [...(jobValues.subcontractors || []), data])
           }
         />
       )}
@@ -227,16 +245,16 @@ const CreateJob = () => {
         maw="35rem"
         firstDayOfWeek={0}
       />
-      {!!predefinedJob?.location && (
+      {!!job?.location && (
         <Text>
           <b>Location: </b>
-          {predefinedJob.location}
+          {job.location}
         </Text>
       )}
-      {!!predefinedJob?.links && (
+      {!!job?.links && (
         <Text>
           <b>Links to Manuals: </b>
-          {predefinedJob.links.join(', ')}
+          {job.links.join(', ')}
         </Text>
       )}
       {/* <Textarea
@@ -246,10 +264,10 @@ const CreateJob = () => {
         onChange={(event) => setLinkToManual(event.currentTarget.value)}
         maw="45rem"
       /> */}
-      {!!predefinedJob?.description && (
+      {!!job?.description && (
         <Text>
           <b>Description: </b>
-          {predefinedJob.description}
+          {job.description}
         </Text>
       )}
       <JobEmployees
@@ -301,12 +319,7 @@ const CreateJob = () => {
       </Button>
 
       {/* Completion Confirmation Modal */}
-      <Modal
-        opened={confirmOpened}
-        onClose={confirmClose}
-        title="Job Completion Status"
-        centered
-      >
+      <Modal opened={confirmOpened} onClose={confirmClose} title="Job Completion Status" centered>
         <Stack>
           <Text>Is this job complete?</Text>
           <Group justify="flex-end">

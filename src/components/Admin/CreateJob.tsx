@@ -64,7 +64,6 @@ const CreateJob = () => {
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });
-  console.log('users', users);
 
   const newCreatedByUser = users?.find(
     (storeUser) => user == `${storeUser.email} (${storeUser.name || 'None'})`
@@ -86,7 +85,7 @@ const CreateJob = () => {
         subcontractors: [],
         equipment: [],
         drivers: [],
-        parts: []
+        parts: [],
       }),
     onSettled: (data) => {
       if (data) {

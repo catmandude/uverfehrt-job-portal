@@ -19,8 +19,10 @@ import type {
 //'https://unverfehrt-fast-1065632368040.us-central1.run.app/',
 const api = axios.create({
   baseURL:
-    import.meta.env.VITE_API_URL || 'https://unverfehrt-fast-1065632368040.us-central1.run.app/', //'https://unverfehrt-fast-1065632368040.us-central1.run.app/',
-  headers: { 'Content-Type': 'application/json' },
+    import.meta.env.VITE_API_URL || 'https://unverfehrt-fast-1065632368040.us-central1.run.app',
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 let logoutHandler: (() => void) | null = null;
@@ -85,8 +87,16 @@ export const authApi = {
 };
 
 export const jobsApi = {
-  getMyJobs: async (): Promise<PredefinedJobType[]> => {
-    const response = await api.get('/jobs_predefined');
+  getJobById: async (id: number | undefined): Promise<JobType> => {
+    const response = await api.get(`/jobs/${id}`);
+    return response.data;
+  },
+  getMyClosedJobs: async (): Promise<JobType[]> => {
+    const response = await api.get('/my_jobs/closed');
+    return response.data;
+  },
+  getMyOpenJobs: async (): Promise<PredefinedJobType[]> => {
+    const response = await api.get('/my_jobs/open');
     return response.data;
   },
   createNewJobForUser: async (data: PredefinedJobType) => {

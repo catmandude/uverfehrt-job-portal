@@ -45,11 +45,14 @@ export default function Dashboard() {
             }
           >
             <Group justify="space-between" mb={4}>
-              <Text fw={600} size="lg">
-                {job.customer}
+              <Text size="lg">
+                Cust: <b>{job.customer}</b>
               </Text>
-              <Badge color="blue">#{job.jobNumber}</Badge>
+              {!!job.date && (
+                <Badge color="blue">{new Date(job.date).toLocaleDateString()}</Badge>
+              )}
             </Group>
+            <Text size="md">Job Number: {job.jobNumber}</Text>
             {job.location && (
               <Text size="sm" c="dimmed">
                 📍 {job.location}
@@ -58,11 +61,6 @@ export default function Dashboard() {
             {job.description && (
               <Text size="sm" mt="xs">
                 {job.description}
-              </Text>
-            )}
-            {job.date && (
-              <Text size="sm" mt="sm" c="dimmed">
-                📅 {new Date(job.date).toLocaleDateString()}
               </Text>
             )}
           </Card>
