@@ -80,6 +80,13 @@ function RootLayout() {
             Employee
           </Text>
           <NavItem label="Home" to="/" />
+          <NavLink
+            label="Google Drive"
+            component="a"
+            href="https://drive.google.com/drive/folders/0AKT1b2tW_e-kUk9PVA"
+            target="_blank"
+            rel="noopener noreferrer"
+          />
           <NavItem label="Settings" to="/settings" />
           <NavItem label="Add Job" to="/job/new/create" />
           <NavItem label="My History" to="/my-history" />

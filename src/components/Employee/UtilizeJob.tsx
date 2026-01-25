@@ -9,6 +9,9 @@ import {
   Space,
   Modal,
   Center,
+  Divider,
+  List,
+  Anchor,
 } from '@mantine/core';
 import { useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -54,7 +57,7 @@ const CreateJob = () => {
       customer: '',
       jobNumber: '',
       createdFromJobId: null,
-      date: new Date(),
+      date: null,
       employees: [] as EmployeeJobType[],
       subcontractors: [] as SubcontractorJobType[],
       equipment: [] as EquipmentJobType[],
@@ -87,18 +90,12 @@ const CreateJob = () => {
           customer: job.customer,
           jobNumber: job.jobNumber,
           createdFromJobId: job.isEdit ? job.id : undefined,
-          date: job.isEdit ? job.date : String(new Date()),
-          employees: job.isEdit
-            ? job.employees?.map((emp) => ({
-                ...emp,
-                startTime: dayjs(emp.startTime).format('HH:mm'),
-                endTime: dayjs(emp.endTime).format('HH:mm'),
-              })) || []
-            : [],
-          subcontractors: job.subcontractors || [],
-          equipment: job.equipment || [],
-          drivers: job.drivers || [],
-          parts: job.parts || [],
+          date: null,
+          employees: [],
+          subcontractors: [],
+          equipment: [],
+          drivers: [],
+          parts: [],
         });
       }
     }
@@ -142,13 +139,14 @@ const CreateJob = () => {
       }),
     onSettled: (data) => {
       if (data) {
+        console.log('Created Job:', data);
         notifications.show({
           title: 'Job Created',
           message: `Job ${data.isEdit ? 'saved' : 'created'} for customer: ${jobValues.customer} that will be done by ${newCreatedByUser?.name}`,
           color: 'blue',
         });
         jobForm.reset();
-        return navigate({ to: '/my-history' });
+        return data.isEdit ? navigate({ to: '/' }) : navigate({ to: '/my-history' });
       }
       notifications.show({
         title: 'Error',
@@ -165,6 +163,8 @@ const CreateJob = () => {
       </Center>
     );
   }
+
+  console.log('Job Values:', job);
 
   return (
     <Stack w="100%" gap="lg" mb="md">
@@ -238,7 +238,7 @@ const CreateJob = () => {
         />
       </Input.Wrapper>
       <DatePickerInput
-        label="Pick date"
+        label="Pick date (Required)"
         placeholder="Pick date"
         value={jobValues.date}
         onChange={(newDate) => newDate && jobForm.setFieldValue('date', newDate)}
@@ -251,12 +251,20 @@ const CreateJob = () => {
           {job.location}
         </Text>
       )}
-      {!!job?.links && (
-        <Text>
-          <b>Links to Manuals: </b>
-          {job.links.join(', ')}
-        </Text>
-      )}
+      <Text>
+        <b>Links to Manuals: </b>
+      </Text>
+      <List>
+        {!!job?.links
+          ? job.links.map((link, index) => (
+              <List.Item key={index}>
+                <Anchor href={link} target="_blank">
+                  {link}
+                </Anchor>
+              </List.Item>
+            ))
+          : 'None'}
+      </List>
       {/* <Textarea
         value={linksToManuals}
         label="Links to Manuals"
@@ -277,6 +285,7 @@ const CreateJob = () => {
       <Button w="20rem" variant="outline" onClick={openEmployee}>
         Add Employees (Required)
       </Button>
+      <Divider />
       <JobDriverVehicles
         jobDriverVehicles={jobValues.drivers || []}
         setFieldValue={jobForm.setFieldValue}
@@ -284,6 +293,7 @@ const CreateJob = () => {
       <Button w="20rem" variant="outline" onClick={openDriverVehicle}>
         Add Driver/Vehicle (Required)
       </Button>
+      <Divider />
       <JobEquipment
         jobEquipment={jobValues.equipment || []}
         setFieldValue={jobForm.setFieldValue}
@@ -291,6 +301,7 @@ const CreateJob = () => {
       <Button w="20rem" variant="outline" onClick={openEquipment}>
         Add Equipment (Required)
       </Button>
+      <Divider />
       <JobSubcontractors
         jobSubcontractors={jobValues.subcontractors || []}
         setFieldValue={jobForm.setFieldValue}
@@ -298,6 +309,7 @@ const CreateJob = () => {
       <Button w="20rem" variant="outline" onClick={openSubcontractor}>
         Add Subcontractors
       </Button>
+      <Divider />
       <JobParts jobParts={jobValues.parts || []} setFieldValue={jobForm.setFieldValue} />
       <Button w="20rem" variant="outline" onClick={openParts}>
         Add Parts
@@ -317,14 +329,12 @@ const CreateJob = () => {
       >
         Save/Submit Job
       </Button>
-
-      {/* Completion Confirmation Modal */}
       <Modal opened={confirmOpened} onClose={confirmClose} title="Job Completion Status" centered>
         <Stack>
           <Text>Is this job complete?</Text>
           <Group justify="flex-end">
             <Button variant="outline" onClick={() => handleSubmitJob(false)}>
-              No, Save as Incomplete
+              Save as Draft
             </Button>
             <Button
               variant="filled"
@@ -335,7 +345,7 @@ const CreateJob = () => {
                 !jobValues.equipment?.length
               }
             >
-              Yes, Mark as Complete
+              Submit
             </Button>
           </Group>
         </Stack>

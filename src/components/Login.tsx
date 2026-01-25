@@ -39,7 +39,7 @@ export const Login: React.FC = () => {
       fluid
       px="md"
       style={{
-        minHeight: '100vh',
+        minHeight: '80vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -47,7 +47,7 @@ export const Login: React.FC = () => {
     >
       <Stack w="100%" maw={400}>
         <Title ta="center" style={{ fontWeight: 900 }}>
-          Welcome back!
+          Unverfehrt Farm Supply
         </Title>
 
         <Paper withBorder shadow="md" p="lg" radius="md">

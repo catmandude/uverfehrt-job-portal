@@ -19,7 +19,7 @@ import type {
 //'https://unverfehrt-fast-1065632368040.us-central1.run.app/',
 const api = axios.create({
   baseURL:
-    import.meta.env.VITE_API_URL || 'https://unverfehrt-fast-1065632368040.us-central1.run.app',
+    import.meta.env.VITE_API_URL || 'http://localhost:8000',
   headers: {
     'Content-Type': 'application/json',
   },

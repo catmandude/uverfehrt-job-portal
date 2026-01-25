@@ -134,7 +134,7 @@ export type JobType = {
   isEdit: boolean;
   description?: string;
   createdById: number | undefined;
-  date: string | Date;
+  date: string | Date | null;
   links: string[];
   employees: EmployeeJobType[];
   subcontractors: SubcontractorJobType[];

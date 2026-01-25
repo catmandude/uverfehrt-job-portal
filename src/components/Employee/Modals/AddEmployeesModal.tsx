@@ -1,7 +1,8 @@
-import { Modal, Textarea, Button, Group, Stack, MultiSelect } from '@mantine/core';
+import { Modal, Textarea, Button, Group, Stack, MultiSelect, ActionIcon } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useState } from 'react';
-import { TimePicker } from '@mantine/dates';
+import { useState, useRef } from 'react';
+import { TimeInput } from '@mantine/dates';
+import { IconClock } from '@tabler/icons-react';
 import type { EmployeeJobType } from '../../../types';
 import { useEmployees } from '../../../services/queries';
 
@@ -22,9 +23,11 @@ interface FormType {
 export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmployeesModalProps) {
   const [groupId] = useState(() => `group-${Date.now()}`);
   const { employees } = useEmployees();
+  const startTimeRef = useRef<HTMLInputElement>(null);
+  const endTimeRef = useRef<HTMLInputElement>(null);
   const displayEmployees = employees?.map((employee) => ({
     value: String(employee.id),
-    label: `${employee.firstName} ${employee.lastName}`,
+    label: `${employee.lastName}, ${employee.firstName}`,
     ...employee,
   }));
 
@@ -37,8 +40,21 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
     },
     validate: {
       employees: (value) => (value.length === 0 ? 'At least one employee is required' : null),
-      startTime: (value) => (!value ? 'Start time is required' : null),
-      endTime: (value) => (!value ? 'End time is required' : null),
+      startTime: (value, values) => {
+        if (!value) return 'Start time is required';
+        if (values.endTime && value >= values.endTime) {
+          return 'Start time must be before end time';
+        }
+        return null;
+      },
+      endTime: (value, values) => {
+        if (!value) return 'End time is required';
+        if (values.startTime && value <= values.startTime) {
+          return 'End time must be after start time';
+        }
+        return null;
+      },
+      description: (value) => (!value.trim() ? 'Description is required' : null),
     },
   });
   const formValues = form.getValues();
@@ -72,21 +88,48 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
             value={formValues.employees.map(String)}
             data={displayEmployees}
             maw="30rem"
+            required
+            error={form.errors.employees}
           />
-          <TimePicker
+          <TimeInput
+            label="Start Time"
+            ref={startTimeRef}
             value={formValues.startTime}
-            onChange={(value) => form.setFieldValue('startTime', value)}
-            format="12h"
+            onChange={(event) => form.setFieldValue('startTime', event.currentTarget.value)}
+            required
+            error={form.errors.startTime}
+            rightSection={
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                onClick={() => startTimeRef.current?.showPicker()}
+              >
+                <IconClock size={16} stroke={1.5} />
+              </ActionIcon>
+            }
           />
-          <TimePicker
+          <TimeInput
+            label="End Time"
+            ref={endTimeRef}
             value={formValues.endTime}
-            onChange={(value) => form.setFieldValue('endTime', value)}
-            format="12h"
+            onChange={(event) => form.setFieldValue('endTime', event.currentTarget.value)}
+            required
+            error={form.errors.endTime}
+            rightSection={
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                onClick={() => endTimeRef.current?.showPicker()}
+              >
+                <IconClock size={16} stroke={1.5} />
+              </ActionIcon>
+            }
           />
           <Textarea
             label="Description"
             placeholder="Enter job description"
             minRows={3}
+            required
             {...form.getInputProps('description')}
           />
           <Group justify="flex-end" mt="md">
