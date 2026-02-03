@@ -84,8 +84,8 @@ const CreateJob = () => {
     onSettled: (data) => {
       if (data) {
         notifications.show({
-          title: 'Job Created',
-          message: `Job created for customer: ${customer} that will be done by ${newCreatedByUser?.name}`,
+          title: 'Job Submitted',
+          message: `Job submitted for customer: ${customer} that will be done by ${newCreatedByUser?.name}`,
           color: 'blue',
         });
         setLocation('');

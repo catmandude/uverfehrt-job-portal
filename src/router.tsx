@@ -81,7 +81,7 @@ function RootLayout() {
           </Text>
           <NavItem label="Home" to="/" />
           <NavLink
-            label="Google Drive"
+            label="Manuals"
             component="a"
             href="https://drive.google.com/drive/folders/0AKT1b2tW_e-kUk9PVA"
             target="_blank"

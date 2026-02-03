@@ -119,7 +119,7 @@ const Home = () => {
                 )})`}
               >
                 <Accordion.Control>
-                  {`${job.customer} - ${job.jobNumber} (${selectedOrders === 'all' ? 'Completed' : 'Created'}: ${dayjs(selectedOrders === 'all' ? job.date : job.createdAt).format('MM/DD/YYYY')})`}
+                  {`${job.customer} - ${job.jobNumber} (${selectedOrders === 'all' ? 'Job Date' : 'Created'}: ${dayjs(selectedOrders === 'all' ? job.date : job.createdAt).format('MM/DD/YYYY')})`}
                 </Accordion.Control>
                 <Accordion.Panel>
                   <Grid>

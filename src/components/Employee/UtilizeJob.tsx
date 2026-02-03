@@ -38,7 +38,13 @@ import { AddSubcontractorModal } from './Modals/AddSubcontractorModal.tsx';
 import JobSubcontractors from './JobListDisplays/JobSubcontractors.tsx';
 import { AddPartsModal } from './Modals/AddPartsModal.tsx';
 import JobParts from './JobListDisplays/JobParts.tsx';
-import { useJob } from '../../services/queries.ts';
+import {
+  useJob,
+  useEmployees,
+  useVehicles,
+  useEquipment,
+  useSubcontractors,
+} from '../../services/queries.ts';
 import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -51,6 +57,10 @@ const CreateJob = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { job, jobLoading } = useJob(Number(jobId));
+  const { employees } = useEmployees();
+  const { vehicles } = useVehicles();
+  const { equipment: equipmentList } = useEquipment();
+  const { subcontractors } = useSubcontractors();
 
   const jobForm = useForm<Partial<JobType>>({
     initialValues: {
@@ -86,16 +96,24 @@ const CreateJob = () => {
   useEffect(() => {
     if (jobId && jobId !== 'new') {
       if (job) {
+        const isUserDraft = !job.adminCreatedById;
+        const employees = isUserDraft
+          ? job.employees.map((emp) => ({
+              ...emp,
+              startTime: dayjs(emp.startTime).format('HH:mm'),
+              endTime: dayjs(emp.endTime).format('HH:mm'),
+            }))
+          : [];
         jobForm.setValues({
           customer: job.customer,
           jobNumber: job.jobNumber,
           createdFromJobId: job.isEdit ? job.id : undefined,
           date: null,
-          employees: [],
-          subcontractors: [],
-          equipment: [],
-          drivers: [],
-          parts: [],
+          employees,
+          subcontractors: isUserDraft ? job.subcontractors : [],
+          equipment: isUserDraft ? job.equipment : [],
+          drivers: isUserDraft ? job.drivers : [],
+          parts: isUserDraft ? job.parts : [],
         });
       }
     }
@@ -139,10 +157,9 @@ const CreateJob = () => {
       }),
     onSettled: (data) => {
       if (data) {
-        console.log('Created Job:', data);
         notifications.show({
-          title: 'Job Created',
-          message: `Job ${data.isEdit ? 'saved' : 'created'} for customer: ${jobValues.customer} that will be done by ${newCreatedByUser?.name}`,
+          title: 'Job submitted',
+          message: `Job ${data.isEdit ? 'saved' : 'submitted'} for customer: ${jobValues.customer} that will be done by ${newCreatedByUser?.name}`,
           color: 'blue',
         });
         jobForm.reset();
@@ -248,7 +265,12 @@ const CreateJob = () => {
       {!!job?.location && (
         <Text>
           <b>Location: </b>
-          {job.location}
+          <Anchor
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(job.location)}`}
+            target="_blank"
+          >
+            {job.location}
+          </Anchor>
         </Text>
       )}
       <Text>
@@ -329,13 +351,138 @@ const CreateJob = () => {
       >
         Save/Submit Job
       </Button>
-      <Modal opened={confirmOpened} onClose={confirmClose} title="Job Completion Status" centered>
-        <Stack>
-          <Text>Is this job complete?</Text>
+      <Modal
+        opened={confirmOpened}
+        onClose={confirmClose}
+        title={<Title order={3}>Job Summary</Title>}
+        size="lg"
+        centered
+      >
+        <Stack gap="md">
+          <div>
+            <Text size="sm" c="dimmed" tt="uppercase" fw={700}>
+              Customer
+            </Text>
+            <Text size="lg" fw={500}>
+              {jobValues.customer}
+            </Text>
+          </div>
+          <Divider />
+          <Group grow>
+            <div>
+              <Text size="sm" c="dimmed" tt="uppercase" fw={700}>
+                Job Number
+              </Text>
+              <Text>{jobValues.jobNumber}</Text>
+            </div>
+            <div>
+              <Text size="sm" c="dimmed" tt="uppercase" fw={700}>
+                Date
+              </Text>
+              <Text>{jobValues.date ? dayjs(jobValues.date).format('MMM D, YYYY') : 'Not set'}</Text>
+            </div>
+          </Group>
+          {!!jobValues.employees?.length && (
+            <>
+              <Divider />
+              <div>
+                <Text size="sm" c="dimmed" tt="uppercase" fw={700} mb="xs">
+                  Employees
+                </Text>
+                <List size="sm">
+                  {jobValues.employees.map((emp, index) => {
+                    const employee = employees?.find((e) => e.id === emp.employeeId);
+                    return (
+                      <List.Item key={index}>
+                        {employee?.firstName} {employee?.lastName} - {emp.startTime} to {emp.endTime}
+                        {emp.description && ` (${emp.description})`}
+                      </List.Item>
+                    );
+                  })}
+                </List>
+              </div>
+            </>
+          )}
+          {!!jobValues.drivers?.length && (
+            <>
+              <Divider />
+              <div>
+                <Text size="sm" c="dimmed" tt="uppercase" fw={700} mb="xs">
+                  Drivers & Vehicles
+                </Text>
+                <List size="sm">
+                  {jobValues.drivers.map((dv, index) => {
+                    const driver = employees?.find((e) => e.id === dv.driverId);
+                    const vehicle = vehicles?.find((v) => v.id === dv.vehicleId);
+                    return (
+                      <List.Item key={index}>
+                        {driver?.firstName} {driver?.lastName} - {vehicle?.name}
+                      </List.Item>
+                    );
+                  })}
+                </List>
+              </div>
+            </>
+          )}
+          {!!jobValues.equipment?.length && (
+            <>
+              <Divider />
+              <div>
+                <Text size="sm" c="dimmed" tt="uppercase" fw={700} mb="xs">
+                  Equipment
+                </Text>
+                <List size="sm">
+                  {jobValues.equipment.map((equip, index) => {
+                    const eq = equipmentList?.find((e) => e.id === equip.equipmentId);
+                    return (
+                      <List.Item key={index}>
+                        {eq?.name} - {equip.hours} hours
+                      </List.Item>
+                    );
+                  })}
+                </List>
+              </div>
+            </>
+          )}
+          {!!jobValues.subcontractors?.length && (
+            <>
+              <Divider />
+              <div>
+                <Text size="sm" c="dimmed" tt="uppercase" fw={700} mb="xs">
+                  Subcontractors
+                </Text>
+                <List size="sm">
+                  {jobValues.subcontractors.map((sub, index) => {
+                    const subcontractor = subcontractors?.find((s) => s.id === sub.subContractorId);
+                    return (
+                      <List.Item key={index}>
+                        {subcontractor?.name} - {sub.numberOfMen} people × {sub.hoursPerMan} hours
+                      </List.Item>
+                    );
+                  })}
+                </List>
+              </div>
+            </>
+          )}
+          {!!jobValues.parts?.length && (
+            <>
+              <Divider />
+              <div>
+                <Text size="sm" c="dimmed" tt="uppercase" fw={700} mb="xs">
+                  Parts
+                </Text>
+                <List size="sm">
+                  {jobValues.parts.map((part, index) => (
+                    <List.Item key={index}>
+                      #{part.partNumber} (x{part.quantity}) - {part.description}
+                    </List.Item>
+                  ))}
+                </List>
+              </div>
+            </>
+          )}
+          <Divider />
           <Group justify="flex-end">
-            <Button variant="outline" onClick={() => handleSubmitJob(false)}>
-              Save as Draft
-            </Button>
             <Button
               variant="filled"
               onClick={() => handleSubmitJob(true)}
@@ -345,7 +492,10 @@ const CreateJob = () => {
                 !jobValues.equipment?.length
               }
             >
-              Submit
+              Complete
+            </Button>
+            <Button variant="outline" onClick={() => handleSubmitJob(false)}>
+              Not Complete
             </Button>
           </Group>
         </Stack>

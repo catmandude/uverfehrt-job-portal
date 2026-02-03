@@ -17,7 +17,7 @@ function App() {
   return (
     <MantineProvider>
       <QueryClientProvider client={queryClient}>
-        <Notifications />
+        <Notifications position="top-right" />
         <RouterProvider router={router} />
       </QueryClientProvider>
     </MantineProvider>
