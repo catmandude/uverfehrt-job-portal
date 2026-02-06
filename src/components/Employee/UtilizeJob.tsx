@@ -141,7 +141,7 @@ const CreateJob = () => {
         description: job?.description || undefined,
         location: job?.location || undefined,
         createdFromJobId: job?.isEdit ? job.id : undefined,
-        adminCreatedById: job?.adminCreatedById || null,
+        adminCreatedById: null,
         employees:
           jobValues.employees?.map((emp) => ({
             ...emp,
@@ -246,7 +246,7 @@ const CreateJob = () => {
           maw="35rem"
         />
       </Input.Wrapper>
-      <Input.Wrapper label="Job Name / Sales Order #">
+      <Input.Wrapper label="Job Name">
         <Input
           value={jobValues.jobNumber}
           placeholder=""

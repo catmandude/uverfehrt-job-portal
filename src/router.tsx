@@ -83,7 +83,7 @@ function RootLayout() {
           <NavLink
             label="Manuals"
             component="a"
-            href="https://drive.google.com/drive/folders/0AKT1b2tW_e-kUk9PVA"
+            href="https://drive.google.com/drive/folders/14HJdjGWbQRmCXLSoiEm-w97eFBbOCKUZ?usp=drive_link"
             target="_blank"
             rel="noopener noreferrer"
           />

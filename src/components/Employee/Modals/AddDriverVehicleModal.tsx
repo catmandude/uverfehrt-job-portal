@@ -23,16 +23,20 @@ export function AddDriverVehicleModal({
 }: AddDriverVehicleModalProps) {
   const { employees } = useEmployees();
   const { vehicles } = useVehicles();
-  const displayEmployees = employees?.map((employee) => ({
-    value: String(employee.id),
-    label: `${employee.firstName} ${employee.lastName}`,
-    ...employee,
-  }));
-  const displayVehicles = vehicles?.map((vehicle) => ({
-    value: String(vehicle.id),
-    label: vehicle.name,
-    ...vehicle,
-  }));
+  const displayEmployees = employees
+    ? employees.map((employee) => ({
+        value: String(employee.id),
+        label: `${employee.lastName}, ${employee.firstName}`,
+      }))
+    : [];
+  const displayVehicles = vehicles
+    ? vehicles
+        .map((vehicle) => ({
+          value: String(vehicle.id),
+          label: vehicle.name,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label))
+    : [];
 
   const form = useForm<FormType>({
     initialValues: {
@@ -71,16 +75,16 @@ export function AddDriverVehicleModal({
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
           <Select
-            onChange={(event) => form.setFieldValue('driverId', Number(event))}
+            onChange={(value) => form.setFieldValue('driverId', value ? Number(value) : null)}
             label="Driver"
-            value={String(formValues.driverId)}
+            value={formValues.driverId ? String(formValues.driverId) : null}
             data={displayEmployees}
             maw="30rem"
           />
           <Select
-            onChange={(event) => form.setFieldValue('vehicleId', Number(event))}
+            onChange={(value) => form.setFieldValue('vehicleId', value ? Number(value) : null)}
             label="Vehicle"
-            value={String(formValues.vehicleId)}
+            value={formValues.vehicleId ? String(formValues.vehicleId) : null}
             data={displayVehicles}
             maw="30rem"
           />

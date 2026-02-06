@@ -382,7 +382,7 @@ const CreateJob = () => {
           maw="35rem"
         />
       </Input.Wrapper>
-      <Input.Wrapper label="Job Name / Sales Order #">
+      <Input.Wrapper label="Job Name">
         <Input
           value={jobNumber}
           placeholder=""
