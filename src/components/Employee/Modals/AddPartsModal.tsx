@@ -27,7 +27,7 @@ export function AddPartsModal({ opened, onClose, jobId, onSubmit }: AddPartsModa
       quantity: (value) => (value === null ? 'Quantity is required' : null),
     },
   });
-  const formValues = form.getValues();
+  const formValues = form.values;
 
   const handleCancel = () => {
     form.reset();
@@ -45,34 +45,46 @@ export function AddPartsModal({ opened, onClose, jobId, onSubmit }: AddPartsModa
   };
 
   return (
-    <Modal opened={opened} onClose={handleCancel} title="Add Part to Job" size="md" centered>
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack>
+    <Modal
+      opened={opened}
+      onClose={handleCancel}
+      title="Add Part to Job"
+      size="lg"
+      centered
+      styles={{ body: { minHeight: '60vh', display: 'flex', flexDirection: 'column' } }}
+    >
+      <form
+        onSubmit={form.onSubmit(handleSubmit)}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+      >
+        <Stack gap="md" style={{ flex: 1 }}>
           <TextInput
             onChange={(event) => form.setFieldValue('partNumber', event.currentTarget.value)}
             label="Part Number"
             value={formValues.partNumber !== null ? String(formValues.partNumber) : ''}
-            maw="30rem"
           />
           <TextInput
-            onChange={(event) => form.setFieldValue('quantity', Number(event.currentTarget.value))}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            onChange={(event) => {
+              const val = event.currentTarget.value.replace(/[^0-9]/g, '');
+              form.setFieldValue('quantity', val ? Number(val) : null);
+            }}
             label="Quantity"
             value={formValues.quantity !== null ? String(formValues.quantity) : ''}
-            maw="30rem"
           />
           <TextInput
             onChange={(event) => form.setFieldValue('description', event.currentTarget.value)}
             label="Description"
             value={formValues.description !== null ? String(formValues.description) : ''}
-            maw="30rem"
           />
-          <Group justify="flex-end" mt="md">
-            <Button variant="subtle" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">Add Part</Button>
-          </Group>
         </Stack>
+        <Group grow mt="xl">
+          <Button variant="default" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit">Add Part</Button>
+        </Group>
       </form>
     </Modal>
   );

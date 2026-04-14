@@ -48,7 +48,7 @@ export function AddDriverVehicleModal({
       vehicleId: (value) => (value === null ? 'Vehicle is required' : null),
     },
   });
-  const formValues = form.getValues();
+  const formValues = form.values;
 
   const handleCancel = () => {
     form.reset();
@@ -69,32 +69,36 @@ export function AddDriverVehicleModal({
       opened={opened}
       onClose={handleCancel}
       title="Add Driver/Vehicle to Job"
-      size="md"
+      size="lg"
       centered
+      styles={{ body: { minHeight: '60vh', display: 'flex', flexDirection: 'column' } }}
     >
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack>
+      <form
+        onSubmit={form.onSubmit(handleSubmit)}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+      >
+        <Stack gap="md" style={{ flex: 1 }}>
           <Select
             onChange={(value) => form.setFieldValue('driverId', value ? Number(value) : null)}
             label="Driver"
             value={formValues.driverId ? String(formValues.driverId) : null}
             data={displayEmployees}
-            maw="30rem"
+            comboboxProps={{ withinPortal: false }}
           />
           <Select
             onChange={(value) => form.setFieldValue('vehicleId', value ? Number(value) : null)}
             label="Vehicle"
             value={formValues.vehicleId ? String(formValues.vehicleId) : null}
             data={displayVehicles}
-            maw="30rem"
+            comboboxProps={{ withinPortal: false }}
           />
-          <Group justify="flex-end" mt="md">
-            <Button variant="subtle" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">Add Driver/Vehicle</Button>
-          </Group>
         </Stack>
+        <Group grow mt="xl">
+          <Button variant="default" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit">Add Driver/Vehicle</Button>
+        </Group>
       </form>
     </Modal>
   );

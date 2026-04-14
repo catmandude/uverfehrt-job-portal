@@ -31,7 +31,7 @@ export function AddEquipmentModal({ opened, onClose, jobId, onSubmit }: AddEquip
       hours: (value) => (value === null ? 'Hours are required' : null),
     },
   });
-  const formValues = form.getValues();
+  const formValues = form.values;
 
   const handleCancel = () => {
     form.reset();
@@ -48,30 +48,39 @@ export function AddEquipmentModal({ opened, onClose, jobId, onSubmit }: AddEquip
   };
 
   return (
-    <Modal opened={opened} onClose={handleCancel} title="Add Equipment to Job" size="md" centered>
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack>
+    <Modal
+      opened={opened}
+      onClose={handleCancel}
+      title="Add Equipment to Job"
+      size="lg"
+      centered
+      styles={{ body: { minHeight: '60vh', display: 'flex', flexDirection: 'column' } }}
+    >
+      <form
+        onSubmit={form.onSubmit(handleSubmit)}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+      >
+        <Stack gap="md" style={{ flex: 1 }}>
           <Select
             onChange={(event) => form.setFieldValue('equipmentId', Number(event))}
             label="Equipment"
             value={String(formValues.equipmentId)}
             data={displayEquipment}
-            maw="30rem"
+            comboboxProps={{ withinPortal: false }}
           />
           <TextInput
             type="number"
             onChange={(event) => form.setFieldValue('hours', Number(event.currentTarget.value))}
             label="Hours"
             value={formValues.hours !== null ? String(formValues.hours) : ''}
-            maw="30rem"
           />
-          <Group justify="flex-end" mt="md">
-            <Button variant="subtle" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">Add Equipment</Button>
-          </Group>
         </Stack>
+        <Group grow mt="xl">
+          <Button variant="default" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit">Add Equipment</Button>
+        </Group>
       </form>
     </Modal>
   );

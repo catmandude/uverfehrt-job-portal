@@ -89,7 +89,7 @@ export const EditEquipment: React.FC = () => {
     });
   };
 
-  const rows = equipment?.map((equipmentItem) => (
+  const rows = [...(equipment || [])].sort((a, b) => a.name.localeCompare(b.name)).map((equipmentItem) => (
     <Table.Tr key={equipmentItem.id}>
       <Table.Td>{equipmentItem.name}</Table.Td>
       <Table.Td>{equipmentItem.legacyId || '-'}</Table.Td>

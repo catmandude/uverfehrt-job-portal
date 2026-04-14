@@ -41,11 +41,25 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
-    const status = error.response?.status;
-    // ---- AUTO LOGOUT ----
-    if (status === 401) {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        try {
+          const { data } = await api.post('/reauthenticate', { refresh_token: refreshToken });
+          localStorage.setItem('authToken', data.id_token);
+          localStorage.setItem('refreshToken', data.refresh_token);
+          originalRequest.headers.Authorization = `Bearer ${data.id_token}`;
+          return api(originalRequest);
+        } catch {
+          // refresh failed — fall through to logout
+        }
+      }
+
       if (logoutHandler) logoutHandler();
-      return Promise.reject(error);
     }
 
     return Promise.reject(error);
@@ -111,6 +125,13 @@ export const jobsApi = {
     const res = await api.get(`/jobs?selected=${orderType}`);
     return res.data;
   },
+  deleteJob: async (id: number): Promise<void> => {
+    await api.delete(`/jobs/${id}`);
+  },
+  addPartsToJob: async (jobId: number, parts: { partNumber: string; quantity: number; description: string }[]) => {
+    const response = await api.post(`/jobs/${jobId}/parts`, parts);
+    return response.data;
+  },
   exportDailyReport: async (date: string): Promise<Blob> => {
     const response = await api.get<Blob>(`/daily-report?report_date=${date}`, {
       responseType: 'blob',
@@ -123,6 +144,15 @@ export const employeesApi = {
   getUsers: async (): Promise<User[]> => {
     const response = await api.get('/users');
     return response.data;
+  },
+
+  getAllUsers: async (): Promise<User[]> => {
+    const response = await api.get('/users', { params: { active_only: false } });
+    return response.data;
+  },
+
+  updateUser: async (id: number, data: { name?: string; isActive?: boolean }): Promise<void> => {
+    await api.put(`/users/${id}`, data);
   },
 
   getEmployees: async (): Promise<EmployeeType[]> => {

@@ -100,7 +100,11 @@ const CreateJob = () => {
 
   const displayUsers = [
     '',
-    ...(users ? users.map((user) => `${user.email} (${user.name || 'None'})`) : []),
+    ...(users
+      ? [...users]
+          .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+          .map((user) => `${user.email} (${user.name || 'None'})`)
+      : []),
   ];
 
   const saveDataToState = (data: DataDownloadType[]) => {

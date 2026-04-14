@@ -12,7 +12,9 @@ import CreateJob from './components/Admin/CreateJob';
 import UtilizeJob from './components/Employee/UtilizeJob';
 
 import {
+  ActionIcon,
   AppShell,
+  Badge,
   Burger,
   Button,
   Container,
@@ -21,20 +23,34 @@ import {
   ScrollArea,
   Text,
 } from '@mantine/core';
-import { useEffect, useState } from 'react';
-import { Link } from '@tanstack/react-router';
+import { IconPlus } from '@tabler/icons-react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
+import { Link, useMatchRoute } from '@tanstack/react-router';
 import AllJobs from './components/Admin/AllJobs';
 import { registerLogoutHandler } from './services/api';
 import { EditEmployees } from './components/Admin/EditEmployees';
 import { EditVehicles } from './components/Admin/EditVehicles';
 import { EditSubcontractors } from './components/Admin/EditSubcontractors';
 import { EditEquipment } from './components/Admin/EditEquipment';
+import { EditUsers } from './components/Admin/EditUsers';
 import MyHistory from './components/Employee/MyHistory';
+
+const subscribe = (cb: () => void) => {
+  window.addEventListener('online', cb);
+  window.addEventListener('offline', cb);
+  return () => {
+    window.removeEventListener('online', cb);
+    window.removeEventListener('offline', cb);
+  };
+};
 
 function RootLayout() {
   const [opened, setOpened] = useState(false);
+  const online = useSyncExternalStore(subscribe, () => navigator.onLine);
 
   const { user, logout } = useAuth();
+  const matchRoute = useMatchRoute();
+  const isAddJobPage = !!matchRoute({ to: '/job/$jobId/create', fuzzy: true });
 
   useEffect(() => {
     registerLogoutHandler(logout);
@@ -58,19 +74,28 @@ function RootLayout() {
           <Group>
             <Burger opened={opened} onClick={() => setOpened(!opened)} size="sm" />
             <Text fw={700} size="lg">
-              Unverfehrt Farm Supply
+              UFS
             </Text>
           </Group>
-          <Button
-            variant="outline"
-            color="red"
-            onClick={() => {
-              localStorage.removeItem('authToken');
-              window.location.href = '/login';
-            }}
-          >
-            Logout
-          </Button>
+          <Group gap="sm">
+            <Badge
+              color={online ? 'green' : 'red'}
+              variant="dot"
+              size="lg"
+            >
+              {online ? 'Online' : 'Offline'}
+            </Badge>
+            <Button
+              variant="outline"
+              color="red"
+              onClick={() => {
+                localStorage.removeItem('authToken');
+                window.location.href = '/login';
+              }}
+            >
+              Logout
+            </Button>
+          </Group>
         </Group>
       </AppShell.Header>
 
@@ -101,6 +126,7 @@ function RootLayout() {
               <NavItem label="Manage Vehicles" to="/admin/vehicles" />
               <NavItem label="Manage Subcontractors" to="/admin/subcontractors" />
               <NavItem label="Manage Equipment" to="/admin/equipment" />
+              <NavItem label="Manage Users" to="/admin/users" />
             </>
           )}
         </ScrollArea>
@@ -110,6 +136,20 @@ function RootLayout() {
         <Container size="lg" py="md">
           <Outlet />
         </Container>
+        {!isAddJobPage && (
+          <ActionIcon
+            component={Link}
+            to="/job/new/create"
+            size={56}
+            radius="xl"
+            variant="filled"
+            color="blue"
+            style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 1000 }}
+            aria-label="Add Job"
+          >
+            <IconPlus size={28} />
+          </ActionIcon>
+        )}
       </AppShell.Main>
     </AppShell>
   );
@@ -202,6 +242,12 @@ export const adminManageEquipmentRoute = createRoute({
   component: () => <EditEquipment />,
 });
 
+export const adminManageUsersRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/admin/users',
+  component: () => <EditUsers />,
+});
+
 export const utilizeJobRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/job/$jobId/create',
@@ -231,6 +277,7 @@ const routeTree = rootRoute.addChildren([
     adminManageVehiclesRoute,
     adminManageSubcontractorsRoute,
     adminManageEquipmentRoute,
+    adminManageUsersRoute,
   ]),
 ]);
 

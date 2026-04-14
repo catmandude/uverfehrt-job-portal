@@ -89,7 +89,7 @@ export const EditSubcontractors: React.FC = () => {
     });
   };
 
-  const rows = subcontractors?.map((subcontractor) => (
+  const rows = [...(subcontractors || [])].sort((a, b) => a.name.localeCompare(b.name)).map((subcontractor) => (
     <Table.Tr key={subcontractor.id}>
       <Table.Td>{subcontractor.name}</Table.Td>
       <Table.Td>{subcontractor.legacyId || '-'}</Table.Td>

@@ -132,6 +132,7 @@ export type JobType = {
   jobNumber: string;
   location?: string;
   isEdit: boolean;
+  complete?: boolean;
   description?: string;
   createdById: number | undefined;
   date: string | Date | null;
@@ -212,6 +213,7 @@ export type ExistingJobType = {
   jobNumber: string;
   location: string;
   isEdit: boolean;
+  complete?: boolean;
   description: string;
   createdById: number;
   date: string;

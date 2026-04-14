@@ -42,7 +42,7 @@ export function AddSubcontractorModal({
       description: (value) => (value === null ? 'Description is required' : null),
     },
   });
-  const formValues = form.getValues();
+  const formValues = form.values;
 
   const handleCancel = () => {
     form.reset();
@@ -65,17 +65,21 @@ export function AddSubcontractorModal({
       opened={opened}
       onClose={handleCancel}
       title="Add Subcontractor to Job"
-      size="md"
+      size="lg"
       centered
+      styles={{ body: { minHeight: '60vh', display: 'flex', flexDirection: 'column' } }}
     >
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack>
+      <form
+        onSubmit={form.onSubmit(handleSubmit)}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+      >
+        <Stack gap="md" style={{ flex: 1 }}>
           <Select
             onChange={(event) => form.setFieldValue('subcontractorId', Number(event))}
             label="Subcontractor"
             value={String(formValues.subcontractorId)}
             data={displaySubcontractors}
-            maw="30rem"
+            comboboxProps={{ withinPortal: false }}
           />
           <TextInput
             type="number"
@@ -84,7 +88,6 @@ export function AddSubcontractorModal({
             }
             label="Hours per Man"
             value={formValues.hoursPerMan !== null ? String(formValues.hoursPerMan) : ''}
-            maw="30rem"
           />
           <TextInput
             type="number"
@@ -93,21 +96,19 @@ export function AddSubcontractorModal({
             }
             label="Number of Men"
             value={formValues.numberOfMen !== null ? String(formValues.numberOfMen) : ''}
-            maw="30rem"
           />
           <TextInput
             onChange={(event) => form.setFieldValue('description', event.currentTarget.value)}
             label="Description"
             value={formValues.description !== null ? String(formValues.description) : ''}
-            maw="30rem"
           />
-          <Group justify="flex-end" mt="md">
-            <Button variant="subtle" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">Add Subcontractor</Button>
-          </Group>
         </Stack>
+        <Group grow mt="xl">
+          <Button variant="default" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit">Add Subcontractor</Button>
+        </Group>
       </form>
     </Modal>
   );

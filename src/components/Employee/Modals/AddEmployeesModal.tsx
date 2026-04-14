@@ -57,7 +57,7 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
       description: (value) => (!value.trim() ? 'Description is required' : null),
     },
   });
-  const formValues = form.getValues();
+  const formValues = form.values;
 
   const handleCancel = () => {
     form.reset();
@@ -79,15 +79,25 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
   };
 
   return (
-    <Modal opened={opened} onClose={handleCancel} title="Add Employee to Job" size="md" centered>
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack>
+    <Modal
+      opened={opened}
+      onClose={handleCancel}
+      title="Add Employee to Job"
+      size="lg"
+      centered
+      styles={{ body: { minHeight: '60vh', display: 'flex', flexDirection: 'column' } }}
+    >
+      <form
+        onSubmit={form.onSubmit(handleSubmit)}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+      >
+        <Stack gap="md" style={{ flex: 1 }}>
           <MultiSelect
             onChange={(event) => form.setFieldValue('employees', event.map(Number))}
             label="User"
             value={formValues.employees.map(String)}
             data={displayEmployees}
-            maw="30rem"
+            comboboxProps={{ withinPortal: false }}
             required
             error={form.errors.employees}
           />
@@ -132,13 +142,13 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
             required
             {...form.getInputProps('description')}
           />
-          <Group justify="flex-end" mt="md">
-            <Button variant="subtle" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">Add Employee</Button>
-          </Group>
         </Stack>
+        <Group grow mt="xl">
+          <Button variant="default" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit">Add Employee</Button>
+        </Group>
       </form>
     </Modal>
   );

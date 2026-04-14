@@ -1,12 +1,16 @@
-import { Card, Group, Text, Badge, Stack, ScrollArea, Center } from '@mantine/core';
-
+import { useState } from 'react';
+import { ActionIcon, Button, Card, Group, Modal, Text, Badge, Stack, ScrollArea, Center } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { IconTrash } from '@tabler/icons-react';
 import { useNavigate } from '@tanstack/react-router';
-import { useMyPredefinedJobs } from '../services/queries';
+import { useMyPredefinedJobs, useDeleteJob } from '../services/queries';
 
 export default function Dashboard() {
   const navigate = useNavigate();
 
   const { myPredefinedJobs, myPredefinedJobsLoading } = useMyPredefinedJobs();
+  const deleteJob = useDeleteJob();
+  const [jobToDelete, setJobToDelete] = useState<{ id: number; customer: string } | null>(null);
 
   if (myPredefinedJobsLoading) {
     return (
@@ -48,9 +52,23 @@ export default function Dashboard() {
               <Text size="lg">
                 Cust: <b>{job.customer}</b>
               </Text>
-              {!!job.date && (
-                <Badge color="blue">{new Date(job.date).toLocaleDateString()}</Badge>
-              )}
+              <Group gap="xs">
+                {!!job.date && (
+                  <Badge color="blue">{new Date(job.date).toLocaleDateString()}</Badge>
+                )}
+                <ActionIcon
+                  variant="subtle"
+                  color="red"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (job.id == null) return;
+                    setJobToDelete({ id: job.id, customer: job.customer });
+                  }}
+                >
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Group>
             </Group>
             <Text size="md">Job Number: {job.jobNumber}</Text>
             {job.location && (
@@ -66,6 +84,43 @@ export default function Dashboard() {
           </Card>
         ))}
       </Stack>
+
+      <Modal
+        opened={!!jobToDelete}
+        onClose={() => setJobToDelete(null)}
+        title="Confirm Delete"
+        centered
+      >
+        <Stack>
+          <Text>
+            Are you sure you want to delete the job for{' '}
+            <strong>{jobToDelete?.customer}</strong>? This action cannot be undone.
+          </Text>
+          <Group justify="flex-end">
+            <Button variant="default" onClick={() => setJobToDelete(null)}>
+              Cancel
+            </Button>
+            <Button
+              color="red"
+              onClick={() => {
+                if (!jobToDelete) return;
+                deleteJob.mutate(jobToDelete.id, {
+                  onSuccess: () => {
+                    notifications.show({
+                      title: 'Success',
+                      message: 'Job deleted successfully',
+                      color: 'green',
+                    });
+                    setJobToDelete(null);
+                  },
+                });
+              }}
+            >
+              Delete
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </ScrollArea>
   );
 }

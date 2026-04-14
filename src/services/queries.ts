@@ -11,6 +11,28 @@ export const useUsers = () => {
   return { users, isPending };
 };
 
+export const useAllUsers = () => {
+  const { data: allUsers, isPending: allUsersLoading } = useQuery({
+    queryKey: ['all-users'],
+    queryFn: () => employeesApi.getAllUsers(),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+  });
+  return { allUsers, allUsersLoading };
+};
+
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: number; name?: string; isActive?: boolean }) =>
+      employeesApi.updateUser(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['all-users'] });
+    },
+  });
+};
+
 export const useEmployees = () => {
   const { data: employees, isPending: employeesLoading } = useQuery({
     queryKey: ['employees'],
@@ -51,6 +73,17 @@ export const useSubcontractors = () => {
   return { subcontractors, subcontractorsLoading };
 };
 
+export const useAddPartsToJob = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ jobId, parts }: { jobId: number; parts: { partNumber: string; quantity: number; description: string }[] }) =>
+      jobsApi.addPartsToJob(jobId, parts),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-closed-jobs'] });
+    },
+  });
+};
+
 export const useMyClosedJobs = () => {
   const { data: myClosedJobs, isPending: myClosedJobsLoading } = useQuery({
     queryKey: ['my-closed-jobs'],
@@ -74,6 +107,16 @@ export const useMyPredefinedJobs = () => {
     queryFn: () => jobsApi.getMyOpenJobs(),
   });
   return { myPredefinedJobs, myPredefinedJobsLoading };
+};
+
+export const useDeleteJob = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => jobsApi.deleteJob(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-predefined-jobs'] });
+    },
+  });
 };
 
 export const useExistingJobs = (selectedOrders: string) => {

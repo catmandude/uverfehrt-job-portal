@@ -16,16 +16,21 @@ import {
   Divider,
   List,
 } from '@mantine/core';
-import { IconTemplate, IconCalendar, IconBriefcase, IconEye } from '@tabler/icons-react';
+import { IconTemplate, IconCalendar, IconBriefcase, IconEye, IconPlus } from '@tabler/icons-react';
 import dayjs from 'dayjs';
-import type { JobType } from '../../types';
-import { useMyClosedJobs } from '../../services/queries';
+import { notifications } from '@mantine/notifications';
+import type { JobType, PartJobType } from '../../types';
+import { useMyClosedJobs, useAddPartsToJob } from '../../services/queries';
+import { AddPartsModal } from './Modals/AddPartsModal';
 
 const MyHistory: React.FC = () => {
   const navigate = useNavigate();
   const { myClosedJobs, myClosedJobsLoading } = useMyClosedJobs();
+  const addPartsMutation = useAddPartsToJob();
   const [selectedJob, setSelectedJob] = useState<JobType | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
+  const [addPartsModalOpened, setAddPartsModalOpened] = useState(false);
+  const [pendingParts, setPendingParts] = useState<Omit<PartJobType, 'id'>[]>([]);
 
   const handleUtilizeJob = (job: JobType) => {
     navigate({ to: '/job/$jobId/create', params: { jobId: String(job.id) } });
@@ -33,6 +38,7 @@ const MyHistory: React.FC = () => {
 
   const handleViewJob = (job: JobType) => {
     setSelectedJob(job);
+    setPendingParts([]);
     setModalOpened(true);
   };
 
@@ -270,23 +276,69 @@ const MyHistory: React.FC = () => {
                 </div>
               </>
             )}
-            {!!selectedJob.parts?.length && (
-              <>
-                <Divider />
-                <div>
-                  <Text size="sm" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                    Parts
+            <Divider />
+            <div>
+              <Group justify="space-between" mb="xs">
+                <Text size="sm" c="dimmed" tt="uppercase" fw={700}>
+                  Parts
+                </Text>
+                <Button
+                  variant="light"
+                  size="xs"
+                  leftSection={<IconPlus size={14} />}
+                  onClick={() => setAddPartsModalOpened(true)}
+                >
+                  Add Part
+                </Button>
+              </Group>
+              {selectedJob.parts?.length ? (
+                <List size="sm">
+                  {selectedJob.parts.map((part: any) => (
+                    <List.Item key={part.id}>
+                      #{part.partNumber} (x{part.quantity}) - {part.description}
+                    </List.Item>
+                  ))}
+                </List>
+              ) : (
+                <Text size="sm" c="dimmed">No parts added</Text>
+              )}
+              {pendingParts.length > 0 && (
+                <>
+                  <Text size="sm" c="dimmed" tt="uppercase" fw={700} mt="sm" mb="xs">
+                    New Parts to Add
                   </Text>
                   <List size="sm">
-                    {selectedJob.parts.map((part: any) => (
-                      <List.Item key={part.id}>
+                    {pendingParts.map((part, index) => (
+                      <List.Item key={`pending-${index}`}>
                         #{part.partNumber} (x{part.quantity}) - {part.description}
                       </List.Item>
                     ))}
                   </List>
-                </div>
-              </>
-            )}
+                  <Button
+                    mt="sm"
+                    fullWidth
+                    loading={addPartsMutation.isPending}
+                    onClick={() => {
+                      addPartsMutation.mutate(
+                        { jobId: selectedJob.id!, parts: pendingParts.map(p => ({ partNumber: p.partNumber, quantity: p.quantity, description: p.description })) },
+                        {
+                          onSuccess: (newParts: any[]) => {
+                            setSelectedJob({
+                              ...selectedJob,
+                              parts: [...(selectedJob.parts || []), ...newParts],
+                            });
+                            setPendingParts([]);
+                            notifications.show({ title: 'Parts updated', message: 'Parts were added to the job successfully', color: 'green' });
+                          },
+                        }
+                      );
+                    }}
+                  >
+                    Complete
+                  </Button>
+                </>
+              )}
+            </div>
             <Divider />
             <Group justify="flex-end">
               <Button variant="default" onClick={() => setModalOpened(false)}>
@@ -307,6 +359,16 @@ const MyHistory: React.FC = () => {
           </Stack>
         )}
       </Modal>
+      {selectedJob?.id && (
+        <AddPartsModal
+          opened={addPartsModalOpened}
+          onClose={() => setAddPartsModalOpened(false)}
+          jobId={selectedJob.id}
+          onSubmit={(part) => {
+            setPendingParts((prev) => [...prev, part]);
+          }}
+        />
+      )}
     </Container>
   );
 };

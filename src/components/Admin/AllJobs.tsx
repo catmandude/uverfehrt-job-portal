@@ -119,7 +119,7 @@ const Home = () => {
                 )})`}
               >
                 <Accordion.Control>
-                  {`${job.customer} - ${job.jobNumber} (${selectedOrders === 'all' ? 'Job Date' : 'Created'}: ${dayjs(selectedOrders === 'all' ? job.date : job.createdAt).format('MM/DD/YYYY')})`}
+                  {`${job.customer} - ${job.jobNumber} (${selectedOrders === 'all' ? 'Job Date' : 'Created'}: ${dayjs(selectedOrders === 'all' ? job.date : job.createdAt).format('MM/DD/YYYY')}) - ${job.complete ? 'Complete' : 'Incomplete'}`}
                 </Accordion.Control>
                 <Accordion.Panel>
                   <Grid>
@@ -160,6 +160,11 @@ const Home = () => {
                       <b>Links:</b> {job.links?.join(', ')}
                     </Grid.Col>
                   </Grid>
+                  <Grid>
+                    <Grid.Col span={6}>
+                      <b>Status:</b> {job.complete ? 'Complete' : 'Incomplete'}
+                    </Grid.Col>
+                  </Grid>
                   {!job.isEdit && (
                     <>
                       <div style={{ background: 'lightblue', padding: '1rem' }}>
@@ -170,8 +175,8 @@ const Home = () => {
                           <Grid.Col span={12}>
                             <List>
                               {job.employees.map((emp) => {
-                                const start = dayjs(emp.startTime, 'HH:mm');
-                                const end = dayjs(emp.endTime, 'HH:mm');
+                                const start = dayjs(emp.startTime);
+                                const end = dayjs(emp.endTime);
                                 const diffHours = end.diff(start, 'hour', true).toFixed(2);
                                 return (
                                   <List.Item key={emp.id}>
