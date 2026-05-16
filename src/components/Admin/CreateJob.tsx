@@ -198,7 +198,7 @@ const CreateJob = () => {
           color: 'red',
         });
       }
-    } catch (err) {
+    } catch {
       setIsUploadingBulk(false);
       notifications.show({
         title: 'Error',

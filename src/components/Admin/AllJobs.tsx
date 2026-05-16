@@ -186,14 +186,18 @@ const Home = () => {
                             <List>
                               {job.employees.map((emp) => {
                                 const start = dayjs(emp.startTime);
-                                const end = dayjs(emp.endTime);
-                                const diffHours = end.diff(start, 'hour', true).toFixed(2);
+                                const end = emp.endTime ? dayjs(emp.endTime) : null;
+                                const diffHours = end
+                                  ? end.diff(start, 'hour', true).toFixed(2)
+                                  : 'N/A';
+                                const fmtBool = (v: boolean | null) =>
+                                  v == null ? 'N/A' : v ? 'Yes' : 'No';
                                 return (
                                   <List.Item key={emp.id}>
                                     <b>Persons:</b> {emp.employee.firstName} {emp.employee.lastName}{' '}
                                     <b>Hours Per man:</b> {diffHours}{' '}
-                                    <b>Torch Use:</b> {emp.torchUse ? 'Yes' : 'No'}{' '}
-                                    <b>Welder Use:</b> {emp.welderUse ? 'Yes' : 'No'}{' '}
+                                    <b>Torch Use:</b> {fmtBool(emp.torchUse)}{' '}
+                                    <b>Welder Use:</b> {fmtBool(emp.welderUse)}{' '}
                                     <b>Desc:</b> {emp.description}
                                   </List.Item>
                                 );

@@ -89,10 +89,10 @@ export type EmployeeJobType = {
   jobId: number;
   employeeId: number;
   startTime: string;
-  endTime: string;
+  endTime: string | null;
   description: string;
-  torchUse: boolean;
-  welderUse: boolean;
+  torchUse: boolean | null;
+  welderUse: boolean | null;
 };
 
 export type SubcontractorJobType = {
@@ -151,10 +151,10 @@ export type ExistingEmployeeJobType = {
   groupId: string;
   jobId: number;
   startTime: string;
-  endTime: string;
+  endTime: string | null;
   description: string;
-  torchUse: boolean;
-  welderUse: boolean;
+  torchUse: boolean | null;
+  welderUse: boolean | null;
   employee: {
     id: number;
     firstName: string;

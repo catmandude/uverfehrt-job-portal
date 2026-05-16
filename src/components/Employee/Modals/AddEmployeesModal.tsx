@@ -52,15 +52,11 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
         return null;
       },
       endTime: (value, values) => {
-        if (!value) return 'End time is required';
-        if (values.startTime && value <= values.startTime) {
+        if (value && values.startTime && value <= values.startTime) {
           return 'End time must be after start time';
         }
         return null;
       },
-      description: (value) => (!value.trim() ? 'Description is required' : null),
-      torchUse: (value) => (value === null ? 'Please select Yes or No' : null),
-      welderUse: (value) => (value === null ? 'Please select Yes or No' : null),
     },
   });
   const formValues = form.values;
@@ -78,8 +74,8 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
       startTime: values.startTime,
       endTime: values.endTime,
       description: values.description,
-      torchUse: values.torchUse === 'yes',
-      welderUse: values.welderUse === 'yes',
+      torchUse: values.torchUse === null ? null : values.torchUse === 'yes',
+      welderUse: values.welderUse === null ? null : values.welderUse === 'yes',
     }));
 
     onSubmit(newEmployees);
@@ -131,7 +127,6 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
             ref={endTimeRef}
             value={formValues.endTime}
             onChange={(event) => form.setFieldValue('endTime', event.currentTarget.value)}
-            required
             error={form.errors.endTime}
             rightSection={
               <ActionIcon
@@ -147,8 +142,6 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
             label="Torch Use"
             value={formValues.torchUse ?? ''}
             onChange={(value) => form.setFieldValue('torchUse', value as 'yes' | 'no')}
-            error={form.errors.torchUse}
-            required
           >
             <Group mt="xs">
               <Radio value="yes" label="Yes" />
@@ -159,8 +152,6 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
             label="Welder Use"
             value={formValues.welderUse ?? ''}
             onChange={(value) => form.setFieldValue('welderUse', value as 'yes' | 'no')}
-            error={form.errors.welderUse}
-            required
           >
             <Group mt="xs">
               <Radio value="yes" label="Yes" />
@@ -171,7 +162,6 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
             label="Description"
             placeholder="Enter job description"
             minRows={3}
-            required
             {...form.getInputProps('description')}
           />
         </Stack>

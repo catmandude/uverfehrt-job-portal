@@ -5,7 +5,7 @@ import { IconX } from '@tabler/icons-react';
 
 interface JobDriverVehiclesProps {
   jobDriverVehicles: DriverVehicleJobType[];
-  setFieldValue: (field: string, value: any) => void;
+  setFieldValue: (field: string, value: unknown) => void;
 }
 
 const JobDriverVehicles = ({ jobDriverVehicles, setFieldValue }: JobDriverVehiclesProps) => {

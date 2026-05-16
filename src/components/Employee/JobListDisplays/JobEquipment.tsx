@@ -5,7 +5,7 @@ import { IconX } from '@tabler/icons-react';
 
 interface JobEquipmentProps {
   jobEquipment: EquipmentJobType[];
-  setFieldValue: (field: string, value: any) => void;
+  setFieldValue: (field: string, value: unknown) => void;
 }
 
 const JobEquipment = ({ jobEquipment, setFieldValue }: JobEquipmentProps) => {

@@ -4,7 +4,7 @@ import { IconX } from '@tabler/icons-react';
 
 interface JobPartsProps {
   jobParts: PartJobType[];
-  setFieldValue: (field: string, value: any) => void;
+  setFieldValue: (field: string, value: unknown) => void;
 }
 
 const JobParts = ({ jobParts, setFieldValue }: JobPartsProps) => {

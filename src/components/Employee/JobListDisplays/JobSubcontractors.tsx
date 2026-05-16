@@ -9,7 +9,7 @@ dayjs.extend(customParseFormat);
 
 interface JobSubcontractorsProps {
   jobSubcontractors: SubcontractorJobType[];
-  setFieldValue: (field: string, value: any) => void;
+  setFieldValue: (field: string, value: unknown) => void;
 }
 
 const JobSubcontractors = ({ jobSubcontractors, setFieldValue }: JobSubcontractorsProps) => {

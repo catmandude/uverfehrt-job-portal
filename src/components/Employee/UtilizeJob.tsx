@@ -104,9 +104,9 @@ const CreateJob = () => {
           ? job.employees.map((emp) => ({
               ...emp,
               startTime: dayjs(emp.startTime).format('HH:mm'),
-              endTime: dayjs(emp.endTime).format('HH:mm'),
-              torchUse: !!emp.torchUse,
-              welderUse: !!emp.welderUse,
+              endTime: emp.endTime ? dayjs(emp.endTime).format('HH:mm') : '',
+              torchUse: emp.torchUse == null ? null : emp.torchUse,
+              welderUse: emp.welderUse == null ? null : emp.welderUse,
             }))
           : [];
         jobForm.setValues({
@@ -122,6 +122,8 @@ const CreateJob = () => {
         });
       }
     }
+    // jobForm is intentionally omitted — this should run once when the job loads
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId, job]);
 
   const newCreatedByUser = users?.find((storeUser) => user?.id === storeUser.id);
@@ -152,7 +154,7 @@ const CreateJob = () => {
           jobValues.employees?.map((emp) => ({
             ...emp,
             startTime: buildDateTime(jobValues.date!, emp.startTime),
-            endTime: buildDateTime(jobValues.date!, emp.endTime),
+            endTime: emp.endTime ? buildDateTime(jobValues.date!, emp.endTime) : null,
           })) || [],
         equipment: jobValues.equipment || [],
         drivers: jobValues.drivers || [],
@@ -282,7 +284,7 @@ const CreateJob = () => {
         <b>Links to Manuals: </b>
       </Text>
       <List>
-        {!!job?.links
+        {job?.links
           ? job.links.map((link, index) => (
               <List.Item key={index}>
                 <Anchor href={link} target="_blank">
@@ -342,39 +344,62 @@ const CreateJob = () => {
         Add Parts
       </Button>
       <Divider my="md" />
-      <Group>
-        <Button
-          disabled={
-            createJobMutation.isPending ||
-            isPending ||
-            !jobValues.customer ||
-            !jobValues.jobNumber ||
-            !jobValues.date ||
-            !jobValues.employees?.length ||
-            !jobValues.drivers?.length ||
-            !jobValues.equipment?.length
-          }
-          variant="filled"
-          onClick={openConfirm}
-          w="15rem"
-        >
-          Submit Job
-        </Button>
-        <Button
-          disabled={
-            createJobMutation.isPending ||
-            isPending ||
-            !jobValues.customer ||
-            !jobValues.jobNumber ||
-            !jobValues.date
-          }
-          variant="outline"
-          onClick={() => handleSubmitJob(false, false)}
-          w="15rem"
-        >
-          Save as Draft
-        </Button>
-      </Group>
+      {(() => {
+        const incompleteEmployees =
+          jobValues.employees?.filter(
+            (emp) =>
+              !emp.endTime ||
+              !emp.description?.trim() ||
+              emp.torchUse == null ||
+              emp.welderUse == null
+          ) || [];
+        const hasIncomplete = incompleteEmployees.length > 0;
+        return (
+          <>
+            {hasIncomplete && !!jobValues.employees?.length && (
+              <Text size="sm" c="yellow.8">
+                {incompleteEmployees.length} employee row
+                {incompleteEmployees.length === 1 ? '' : 's'} need end time, description, torch use,
+                and welder use before submitting.
+              </Text>
+            )}
+            <Group>
+              <Button
+                disabled={
+                  createJobMutation.isPending ||
+                  isPending ||
+                  !jobValues.customer ||
+                  !jobValues.jobNumber ||
+                  !jobValues.date ||
+                  !jobValues.employees?.length ||
+                  !jobValues.drivers?.length ||
+                  !jobValues.equipment?.length ||
+                  hasIncomplete
+                }
+                variant="filled"
+                onClick={openConfirm}
+                w="15rem"
+              >
+                Submit Job
+              </Button>
+              <Button
+                disabled={
+                  createJobMutation.isPending ||
+                  isPending ||
+                  !jobValues.customer ||
+                  !jobValues.jobNumber ||
+                  !jobValues.date
+                }
+                variant="outline"
+                onClick={() => handleSubmitJob(false, false)}
+                w="15rem"
+              >
+                Save as Draft
+              </Button>
+            </Group>
+          </>
+        );
+      })()}
       {confirmOpened && (
         <JobSummaryModal
           opened={confirmOpened}

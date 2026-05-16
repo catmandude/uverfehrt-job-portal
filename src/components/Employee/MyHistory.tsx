@@ -19,7 +19,14 @@ import {
 import { IconTemplate, IconCalendar, IconBriefcase, IconEye, IconPlus } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { notifications } from '@mantine/notifications';
-import type { JobType, PartJobType } from '../../types';
+import type {
+  JobType,
+  PartJobType,
+  ExistingEmployeeJobType,
+  ExistingDriverVehicleJobType,
+  ExistingEquipmentJobType,
+  ExistingSubcontractorJobType,
+} from '../../types';
 import { useMyClosedJobs, useAddPartsToJob } from '../../services/queries';
 import { AddPartsModal } from './Modals/AddPartsModal';
 
@@ -211,7 +218,7 @@ const MyHistory: React.FC = () => {
                     Employees
                   </Text>
                   <List size="sm">
-                    {selectedJob.employees.map((emp: any) => (
+                    {(selectedJob.employees as unknown as ExistingEmployeeJobType[]).map((emp) => (
                       <List.Item key={emp.id}>
                         {emp.employee?.firstName} {emp.employee?.lastName} -{' '}
                         {dayjs(emp.startTime).format('h:mm A')} to{' '}
@@ -233,7 +240,7 @@ const MyHistory: React.FC = () => {
                     Drivers & Vehicles
                   </Text>
                   <List size="sm">
-                    {selectedJob.drivers.map((driver: any) => (
+                    {(selectedJob.drivers as unknown as ExistingDriverVehicleJobType[]).map((driver) => (
                       <List.Item key={driver.id}>
                         {driver.driver?.firstName} {driver.driver?.lastName} -{' '}
                         {driver.vehicle?.name}
@@ -251,7 +258,7 @@ const MyHistory: React.FC = () => {
                     Equipment
                   </Text>
                   <List size="sm">
-                    {selectedJob.equipment.map((equip: any) => (
+                    {(selectedJob.equipment as unknown as ExistingEquipmentJobType[]).map((equip) => (
                       <List.Item key={equip.id}>
                         {equip.equipment?.name} - {equip.hours} hours
                       </List.Item>
@@ -268,7 +275,7 @@ const MyHistory: React.FC = () => {
                     Subcontractors
                   </Text>
                   <List size="sm">
-                    {selectedJob.subcontractors.map((sub: any) => (
+                    {(selectedJob.subcontractors as unknown as ExistingSubcontractorJobType[]).map((sub) => (
                       <List.Item key={sub.id}>
                         {sub.subcontractor?.name} - {sub.numberOfMen} people × {sub.hoursPerMan}{' '}
                         hours
@@ -295,7 +302,7 @@ const MyHistory: React.FC = () => {
               </Group>
               {selectedJob.parts?.length ? (
                 <List size="sm">
-                  {selectedJob.parts.map((part: any) => (
+                  {selectedJob.parts.map((part: PartJobType) => (
                     <List.Item key={part.id}>
                       #{part.partNumber} (x{part.quantity}) - {part.description}
                     </List.Item>
@@ -324,7 +331,7 @@ const MyHistory: React.FC = () => {
                       addPartsMutation.mutate(
                         { jobId: selectedJob.id!, parts: pendingParts.map(p => ({ partNumber: p.partNumber, quantity: p.quantity, description: p.description })) },
                         {
-                          onSuccess: (newParts: any[]) => {
+                          onSuccess: (newParts: PartJobType[]) => {
                             setSelectedJob({
                               ...selectedJob,
                               parts: [...(selectedJob.parts || []), ...newParts],

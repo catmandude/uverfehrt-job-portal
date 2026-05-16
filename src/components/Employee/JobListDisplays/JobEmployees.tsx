@@ -1,6 +1,17 @@
-import { Card, Text, Group, Stack, Badge, ThemeIcon, ActionIcon, Button } from '@mantine/core';
+import {
+  Card,
+  Text,
+  Group,
+  Stack,
+  Badge,
+  ThemeIcon,
+  ActionIcon,
+  Button,
+  Radio,
+  Textarea,
+} from '@mantine/core';
 import { TimeInput } from '@mantine/dates';
-import { IconClock, IconX, IconPencil, IconCheck } from '@tabler/icons-react';
+import { IconClock, IconX, IconPencil, IconCheck, IconAlertTriangle } from '@tabler/icons-react';
 import { useState, useRef } from 'react';
 import type { EmployeeJobType } from '../../../types';
 import { useEmployees } from '../../../services/queries';
@@ -11,14 +22,14 @@ dayjs.extend(customParseFormat);
 
 interface JobEmployeesProps {
   jobEmployees: EmployeeJobType[];
-  setFieldValue: (field: string, value: any) => void;
+  setFieldValue: (field: string, value: unknown) => void;
 }
 
 interface EmployeeCardProps {
   employee: EmployeeJobType;
   index: number;
   jobEmployees: EmployeeJobType[];
-  setFieldValue: (field: string, value: any) => void;
+  setFieldValue: (field: string, value: unknown) => void;
 }
 
 const EmployeeCard = ({ employee, index, jobEmployees, setFieldValue }: EmployeeCardProps) => {
@@ -26,11 +37,19 @@ const EmployeeCard = ({ employee, index, jobEmployees, setFieldValue }: Employee
   const emp = employees?.find((e) => e.id === employee.employeeId);
   const start = dayjs(employee.startTime, 'HH:mm');
   const end = dayjs(employee.endTime, 'HH:mm');
-  const diffHours = end.diff(start, 'hour', true).toFixed(2);
+  const diffHours =
+    employee.startTime && employee.endTime ? end.diff(start, 'hour', true).toFixed(2) : null;
 
   const [isEditing, setIsEditing] = useState(false);
   const [draftStart, setDraftStart] = useState(employee.startTime);
   const [draftEnd, setDraftEnd] = useState(employee.endTime);
+  const [draftDescription, setDraftDescription] = useState(employee.description ?? '');
+  const [draftTorch, setDraftTorch] = useState<'yes' | 'no' | null>(
+    employee.torchUse == null ? null : employee.torchUse ? 'yes' : 'no'
+  );
+  const [draftWelder, setDraftWelder] = useState<'yes' | 'no' | null>(
+    employee.welderUse == null ? null : employee.welderUse ? 'yes' : 'no'
+  );
   const [error, setError] = useState<string | null>(null);
   const startRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLInputElement>(null);
@@ -43,6 +62,9 @@ const EmployeeCard = ({ employee, index, jobEmployees, setFieldValue }: Employee
   const startEdit = () => {
     setDraftStart(employee.startTime);
     setDraftEnd(employee.endTime);
+    setDraftDescription(employee.description ?? '');
+    setDraftTorch(employee.torchUse == null ? null : employee.torchUse ? 'yes' : 'no');
+    setDraftWelder(employee.welderUse == null ? null : employee.welderUse ? 'yes' : 'no');
     setError(null);
     setIsEditing(true);
   };
@@ -53,16 +75,25 @@ const EmployeeCard = ({ employee, index, jobEmployees, setFieldValue }: Employee
   };
 
   const saveEdit = () => {
-    if (!draftStart || !draftEnd) {
-      setError('Start and end times are required');
+    if (!draftStart) {
+      setError('Start time is required');
       return;
     }
-    if (draftStart >= draftEnd) {
+    if (draftEnd && draftStart >= draftEnd) {
       setError('Start time must be before end time');
       return;
     }
     const updated = jobEmployees.map((e, i) =>
-      i === index ? { ...e, startTime: draftStart, endTime: draftEnd } : e
+      i === index
+        ? {
+            ...e,
+            startTime: draftStart,
+            endTime: draftEnd,
+            description: draftDescription.trim(),
+            torchUse: draftTorch === null ? null : draftTorch === 'yes',
+            welderUse: draftWelder === null ? null : draftWelder === 'yes',
+          }
+        : e
     );
     setFieldValue('employees', updated);
     setIsEditing(false);
@@ -77,8 +108,12 @@ const EmployeeCard = ({ employee, index, jobEmployees, setFieldValue }: Employee
               {emp?.firstName} {emp?.lastName}
             </Text>
             {!isEditing && (
-              <Badge color="green" style={{ cursor: 'pointer' }} onClick={startEdit}>
-                {employee.startTime} - {employee.endTime}
+              <Badge
+                color={employee.endTime ? 'green' : 'yellow'}
+                style={{ cursor: 'pointer' }}
+                onClick={startEdit}
+              >
+                {employee.startTime} - {employee.endTime || '???'}
               </Badge>
             )}
           </Group>
@@ -101,7 +136,7 @@ const EmployeeCard = ({ employee, index, jobEmployees, setFieldValue }: Employee
         </Group>
 
         {isEditing ? (
-          <Stack gap="xs">
+          <Stack gap="sm">
             <Group grow>
               <TimeInput
                 label="Start Time"
@@ -121,7 +156,7 @@ const EmployeeCard = ({ employee, index, jobEmployees, setFieldValue }: Employee
               <TimeInput
                 label="End Time"
                 ref={endRef}
-                value={draftEnd}
+                value={draftEnd ?? ''}
                 onChange={(event) => setDraftEnd(event.currentTarget.value)}
                 rightSection={
                   <ActionIcon
@@ -134,6 +169,36 @@ const EmployeeCard = ({ employee, index, jobEmployees, setFieldValue }: Employee
                 }
               />
             </Group>
+            <Radio.Group
+              label="Torch Use"
+              value={draftTorch ?? ''}
+              onChange={(value) => setDraftTorch(value as 'yes' | 'no')}
+              required
+            >
+              <Group mt="xs">
+                <Radio value="yes" label="Yes" />
+                <Radio value="no" label="No" />
+              </Group>
+            </Radio.Group>
+            <Radio.Group
+              label="Welder Use"
+              value={draftWelder ?? ''}
+              onChange={(value) => setDraftWelder(value as 'yes' | 'no')}
+              required
+            >
+              <Group mt="xs">
+                <Radio value="yes" label="Yes" />
+                <Radio value="no" label="No" />
+              </Group>
+            </Radio.Group>
+            <Textarea
+              label="Description"
+              placeholder="Enter job description"
+              minRows={3}
+              value={draftDescription}
+              onChange={(event) => setDraftDescription(event.currentTarget.value)}
+              required
+            />
             {error && (
               <Text size="xs" c="red">
                 {error}
@@ -149,24 +214,46 @@ const EmployeeCard = ({ employee, index, jobEmployees, setFieldValue }: Employee
             </Group>
           </Stack>
         ) : (
-          <Group gap="xs">
-            <IconClock size={16} />
-            <Text size="sm" c="dimmed">
-              {diffHours} hours
+          <>
+            <Group gap="xs">
+              <IconClock size={16} />
+              <Text size="sm" c="dimmed">
+                {diffHours ? `${diffHours} hours` : 'End time pending'}
+              </Text>
+            </Group>
+
+            <Group gap="xs">
+              <Badge
+                color={employee.torchUse == null ? 'yellow' : employee.torchUse ? 'orange' : 'gray'}
+                variant="light"
+              >
+                Torch: {employee.torchUse == null ? '?' : employee.torchUse ? 'Yes' : 'No'}
+              </Badge>
+              <Badge
+                color={employee.welderUse == null ? 'yellow' : employee.welderUse ? 'blue' : 'gray'}
+                variant="light"
+              >
+                Welder: {employee.welderUse == null ? '?' : employee.welderUse ? 'Yes' : 'No'}
+              </Badge>
+            </Group>
+
+            <Text size="sm" c={employee.description ? 'dimmed' : 'yellow.8'}>
+              {employee.description || 'Description pending'}
             </Text>
-          </Group>
-        )}
 
-        {(employee.torchUse || employee.welderUse) && (
-          <Group gap="xs">
-            {employee.torchUse && <Badge color="orange" variant="light">Torch Use</Badge>}
-            {employee.welderUse && <Badge color="blue" variant="light">Welder Use</Badge>}
-          </Group>
+            {(!employee.endTime ||
+              employee.torchUse == null ||
+              employee.welderUse == null ||
+              !employee.description) && (
+              <Group gap={4} c="yellow.8">
+                <IconAlertTriangle size={14} />
+                <Text size="xs">
+                  Incomplete — click the pencil to finish before submitting
+                </Text>
+              </Group>
+            )}
+          </>
         )}
-
-        <Text size="sm" c="dimmed">
-          {employee.description}
-        </Text>
       </Stack>
     </Card>
   );
