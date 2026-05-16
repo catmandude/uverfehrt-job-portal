@@ -89,3 +89,17 @@ All TypeScript interfaces are in `src/types.ts`:
 - `Job`, `NewJob`, `PredefinedJob` - Job data structures
 - `Employee`, `Vehicle`, `Equipment`, `Subcontractor` - Resource types
 - `JobEmployee`, `JobEquipment`, `JobPart`, etc. - Job resource assignments
+
+## Backend
+
+The API this frontend consumes lives in a separate repo:
+`/Users/austinmiller/development/unverfehrt-fast-uv` (FastAPI + SQLAlchemy + Alembic).
+
+When a backend-shape change is needed (e.g. new column on `JobEmployee`):
+1. Update the SQLAlchemy model in `app/models.py`
+2. Update the Pydantic schemas in `app/schemas.py`
+3. Add an Alembic migration in `alembic/versions/` (chain `down_revision` to the
+   current head)
+4. Update any consumers (`app/main.py`, `app/services/email_service.py`)
+5. Run `alembic upgrade head` against the deployed DB **before** shipping the
+   frontend change that depends on it.
