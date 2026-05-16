@@ -18,7 +18,9 @@ interface FormType {
 export function AddEquipmentModal({ opened, onClose, jobId, onSubmit }: AddEquipmentModalProps) {
   const { equipment } = useEquipment();
   const displayEquipment = equipment
-    ? equipment.map((eq) => ({ value: String(eq.id), label: eq.name }))
+    ? [...equipment]
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((eq) => ({ value: String(eq.id), label: eq.name }))
     : [];
 
   const form = useForm<FormType>({

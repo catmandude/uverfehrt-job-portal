@@ -87,6 +87,8 @@ export function JobSummaryModal({
                   return (
                     <List.Item key={index}>
                       {employee?.firstName} {employee?.lastName} - {emp.startTime} to {emp.endTime}
+                      {emp.torchUse && ' [Torch]'}
+                      {emp.welderUse && ' [Welder]'}
                       {emp.description && ` (${emp.description})`}
                     </List.Item>
                   );

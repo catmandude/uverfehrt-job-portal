@@ -216,6 +216,8 @@ const MyHistory: React.FC = () => {
                         {emp.employee?.firstName} {emp.employee?.lastName} -{' '}
                         {dayjs(emp.startTime).format('h:mm A')} to{' '}
                         {dayjs(emp.endTime).format('h:mm A')}
+                        {emp.torchUse && ' [Torch]'}
+                        {emp.welderUse && ' [Welder]'}
                         {emp.description && ` (${emp.description})`}
                       </List.Item>
                     ))}

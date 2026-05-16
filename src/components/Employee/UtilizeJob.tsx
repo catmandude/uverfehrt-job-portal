@@ -105,6 +105,8 @@ const CreateJob = () => {
               ...emp,
               startTime: dayjs(emp.startTime).format('HH:mm'),
               endTime: dayjs(emp.endTime).format('HH:mm'),
+              torchUse: !!emp.torchUse,
+              welderUse: !!emp.welderUse,
             }))
           : [];
         jobForm.setValues({

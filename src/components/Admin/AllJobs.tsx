@@ -26,7 +26,10 @@ const options = [
 const Home = () => {
   const [selectedOrders, setSelectedOrders] = useState(options[0].value);
   const [isExporting, setIsExporting] = useState(false);
-  const [exportDate, setExportDate] = useState<string | null>(String(new Date()));
+  const [exportDateRange, setExportDateRange] = useState<[string | null, string | null]>([
+    String(new Date()),
+    String(new Date()),
+  ]);
 
   const { historyJobs, historyLoading } = useExistingJobs(selectedOrders);
 
@@ -35,21 +38,26 @@ const Home = () => {
   };
 
   const handleExportCSV = async () => {
-    if (!exportDate) {
-      alert('Please select a date');
+    const [startDate, endDate] = exportDateRange;
+    if (!startDate || !endDate) {
+      alert('Please select a date range');
       return;
     }
     setIsExporting(true);
     try {
       const { jobsApi } = await import('../../services/api');
-      const formattedDate = dayjs(exportDate).format('YYYY-MM-DD');
-      const blob = await jobsApi.exportDailyReport(formattedDate);
+      const formattedStart = dayjs(startDate).format('YYYY-MM-DD');
+      const formattedEnd = dayjs(endDate).format('YYYY-MM-DD');
+      const blob = await jobsApi.exportDailyReport(formattedStart, formattedEnd);
 
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `daily-report-${formattedDate}.csv`;
+      link.download =
+        formattedStart === formattedEnd
+          ? `daily-report-${formattedStart}.csv`
+          : `daily-report-${formattedStart}_to_${formattedEnd}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -84,11 +92,13 @@ const Home = () => {
                 <Group>
                   <SegmentedControl value={selectedOrders} onChange={setOrderType} data={options} />
                   <DatePickerInput
-                    value={exportDate}
-                    onChange={(value) => setExportDate(value)}
-                    placeholder="Select date"
+                    type="range"
+                    value={exportDateRange}
+                    onChange={(value) => setExportDateRange(value)}
+                    placeholder="Select date range"
                     clearable
-                    style={{ width: 200 }}
+                    allowSingleDateInRange
+                    style={{ width: 260 }}
                     firstDayOfWeek={0}
                   />
                   <Button onClick={handleExportCSV} loading={isExporting}>
@@ -181,7 +191,10 @@ const Home = () => {
                                 return (
                                   <List.Item key={emp.id}>
                                     <b>Persons:</b> {emp.employee.firstName} {emp.employee.lastName}{' '}
-                                    <b>Hours Per man:</b> {diffHours} <b>Desc:</b> {emp.description}
+                                    <b>Hours Per man:</b> {diffHours}{' '}
+                                    <b>Torch Use:</b> {emp.torchUse ? 'Yes' : 'No'}{' '}
+                                    <b>Welder Use:</b> {emp.welderUse ? 'Yes' : 'No'}{' '}
+                                    <b>Desc:</b> {emp.description}
                                   </List.Item>
                                 );
                               })}

@@ -132,10 +132,13 @@ export const jobsApi = {
     const response = await api.post(`/jobs/${jobId}/parts`, parts);
     return response.data;
   },
-  exportDailyReport: async (date: string): Promise<Blob> => {
-    const response = await api.get<Blob>(`/daily-report?report_date=${date}`, {
-      responseType: 'blob',
-    });
+  exportDailyReport: async (startDate: string, endDate: string): Promise<Blob> => {
+    const response = await api.get<Blob>(
+      `/daily-report?start_date=${startDate}&end_date=${endDate}`,
+      {
+        responseType: 'blob',
+      }
+    );
     return response.data;
   },
 };

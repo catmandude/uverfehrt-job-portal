@@ -1,4 +1,4 @@
-import { Modal, Textarea, Button, Group, Stack, MultiSelect, ActionIcon } from '@mantine/core';
+import { Modal, Textarea, Button, Group, Stack, MultiSelect, ActionIcon, Radio } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useState, useRef } from 'react';
 import { TimeInput } from '@mantine/dates';
@@ -18,6 +18,8 @@ interface FormType {
   startTime: string;
   endTime: string;
   description: string;
+  torchUse: 'yes' | 'no' | null;
+  welderUse: 'yes' | 'no' | null;
 }
 
 export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmployeesModalProps) {
@@ -37,6 +39,8 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
       startTime: '',
       endTime: '',
       description: '',
+      torchUse: null,
+      welderUse: null,
     },
     validate: {
       employees: (value) => (value.length === 0 ? 'At least one employee is required' : null),
@@ -55,6 +59,8 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
         return null;
       },
       description: (value) => (!value.trim() ? 'Description is required' : null),
+      torchUse: (value) => (value === null ? 'Please select Yes or No' : null),
+      welderUse: (value) => (value === null ? 'Please select Yes or No' : null),
     },
   });
   const formValues = form.values;
@@ -72,6 +78,8 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
       startTime: values.startTime,
       endTime: values.endTime,
       description: values.description,
+      torchUse: values.torchUse === 'yes',
+      welderUse: values.welderUse === 'yes',
     }));
 
     onSubmit(newEmployees);
@@ -135,6 +143,30 @@ export function AddEmployeesModal({ opened, onClose, jobId, onSubmit }: AddEmplo
               </ActionIcon>
             }
           />
+          <Radio.Group
+            label="Torch Use"
+            value={formValues.torchUse ?? ''}
+            onChange={(value) => form.setFieldValue('torchUse', value as 'yes' | 'no')}
+            error={form.errors.torchUse}
+            required
+          >
+            <Group mt="xs">
+              <Radio value="yes" label="Yes" />
+              <Radio value="no" label="No" />
+            </Group>
+          </Radio.Group>
+          <Radio.Group
+            label="Welder Use"
+            value={formValues.welderUse ?? ''}
+            onChange={(value) => form.setFieldValue('welderUse', value as 'yes' | 'no')}
+            error={form.errors.welderUse}
+            required
+          >
+            <Group mt="xs">
+              <Radio value="yes" label="Yes" />
+              <Radio value="no" label="No" />
+            </Group>
+          </Radio.Group>
           <Textarea
             label="Description"
             placeholder="Enter job description"
