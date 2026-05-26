@@ -5,11 +5,11 @@ import {
   PasswordInput,
   Button,
   Paper,
-  Title,
   Container,
   Stack,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import ufsLogo from '../assets/ufs-logo.png';
 // import { notifications } from '@mantine/notifications';
 // import { useMutation } from '@tanstack/react-query';
 
@@ -45,19 +45,20 @@ export const Login: React.FC = () => {
         justifyContent: 'center',
       }}
     >
-      <Stack w="100%" maw={400}>
-        <Title ta="center" style={{ fontWeight: 900 }}>
-          Unverfehrt Farm Supply
-        </Title>
+      <Stack w="100%" maw={400} align="center" gap="xl">
+        <img
+          src={ufsLogo}
+          alt="Unverfehrt Farm Supply"
+          style={{ maxWidth: 280, width: '100%', height: 'auto', objectFit: 'contain' }}
+        />
 
-        <Paper withBorder shadow="md" p="lg" radius="md">
+        <Paper withBorder shadow="md" p="lg" radius="md" w="100%">
           <form onSubmit={form.onSubmit(() => login(formValues.email, formValues.password))}>
-            <Stack>
+            <Stack gap="md">
               <TextInput
                 label="Email"
                 placeholder="Your email"
                 required
-                // disabled={isLoading}
                 {...form.getInputProps('email')}
               />
 
@@ -65,7 +66,6 @@ export const Login: React.FC = () => {
                 label="Password"
                 placeholder="Your password"
                 required
-                // disabled={isLoading}
                 {...form.getInputProps('password')}
               />
 

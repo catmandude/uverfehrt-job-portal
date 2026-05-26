@@ -14,26 +14,35 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import { IconTrash, IconPlus } from '@tabler/icons-react';
-import { useVehicles, useCreateVehicle, useDeleteVehicle } from '../../services/queries';
+import { IconTrash, IconPlus, IconCheck, IconX, IconPencil } from '@tabler/icons-react';
+import {
+  useVehicles,
+  useCreateVehicle,
+  useDeleteVehicle,
+  useUpdateVehicle,
+} from '../../services/queries';
 import type { VehicleType } from '../../types';
 
 interface VehicleFormValues {
   name: string;
+  goTrackVehicleId: string;
 }
 
 export const EditVehicles: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [vehicleToDelete, setVehicleToDelete] = useState<VehicleType | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editGoTrackId, setEditGoTrackId] = useState('');
 
-  // React Query hooks
   const { vehicles, vehiclesLoading } = useVehicles();
   const createVehicle = useCreateVehicle();
+  const updateVehicle = useUpdateVehicle();
   const deleteVehicle = useDeleteVehicle();
 
   const form = useForm<VehicleFormValues>({
     initialValues: {
       name: '',
+      goTrackVehicleId: '',
     },
     validate: {
       name: (value) => (!value.trim() ? 'Vehicle name is required' : null),
@@ -41,23 +50,29 @@ export const EditVehicles: React.FC = () => {
   });
 
   const handleAddVehicle = async (values: VehicleFormValues) => {
-    createVehicle.mutate(values, {
-      onSuccess: () => {
-        notifications.show({
-          title: 'Success',
-          message: `Vehicle ${values.name} added successfully`,
-          color: 'green',
-        });
-        form.reset();
+    createVehicle.mutate(
+      {
+        name: values.name,
+        goTrackVehicleId: values.goTrackVehicleId.trim() || null,
       },
-      onError: () => {
-        notifications.show({
-          title: 'Error',
-          message: 'Failed to add vehicle',
-          color: 'red',
-        });
+      {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Success',
+            message: `Vehicle ${values.name} added successfully`,
+            color: 'green',
+          });
+          form.reset();
+        },
+        onError: () => {
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to add vehicle',
+            color: 'red',
+          });
+        },
       },
-    });
+    );
   };
 
   const handleDeleteClick = (vehicle: VehicleType) => {
@@ -89,21 +104,105 @@ export const EditVehicles: React.FC = () => {
     });
   };
 
-  const rows = [...(vehicles || [])].sort((a, b) => a.name.localeCompare(b.name)).map((vehicle) => (
-    <Table.Tr key={vehicle.id}>
-      <Table.Td>{vehicle.name}</Table.Td>
-      <Table.Td>{vehicle.legacyId || '-'}</Table.Td>
-      <Table.Td>
-        <ActionIcon
-          color="red"
-          variant="subtle"
-          onClick={() => handleDeleteClick(vehicle)}
-        >
-          <IconTrash size={18} />
-        </ActionIcon>
-      </Table.Td>
-    </Table.Tr>
-  ));
+  const startEdit = (vehicle: VehicleType) => {
+    setEditingId(vehicle.id);
+    setEditGoTrackId(vehicle.goTrackVehicleId ?? '');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditGoTrackId('');
+  };
+
+  const saveEdit = (vehicle: VehicleType) => {
+    updateVehicle.mutate(
+      {
+        id: vehicle.id,
+        data: { goTrackVehicleId: editGoTrackId.trim() || null },
+      },
+      {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Success',
+            message: `Updated GoTrack ID for ${vehicle.name}`,
+            color: 'green',
+          });
+          cancelEdit();
+        },
+        onError: () => {
+          notifications.show({
+            title: 'Error',
+            message: 'Failed to update vehicle',
+            color: 'red',
+          });
+        },
+      },
+    );
+  };
+
+  const rows = [...(vehicles || [])]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((vehicle) => {
+      const isEditing = editingId === vehicle.id;
+      return (
+        <Table.Tr key={vehicle.id}>
+          <Table.Td>{vehicle.name}</Table.Td>
+          <Table.Td>{vehicle.legacyId || '-'}</Table.Td>
+          <Table.Td>
+            {isEditing ? (
+              <TextInput
+                value={editGoTrackId}
+                onChange={(e) => setEditGoTrackId(e.currentTarget.value)}
+                placeholder="GoTrack vehicle ID"
+                size="xs"
+                disabled={updateVehicle.isPending}
+              />
+            ) : (
+              vehicle.goTrackVehicleId || '-'
+            )}
+          </Table.Td>
+          <Table.Td>
+            <Group gap="xs">
+              {isEditing ? (
+                <>
+                  <ActionIcon
+                    color="green"
+                    variant="subtle"
+                    onClick={() => saveEdit(vehicle)}
+                    loading={updateVehicle.isPending}
+                  >
+                    <IconCheck size={18} />
+                  </ActionIcon>
+                  <ActionIcon
+                    color="gray"
+                    variant="subtle"
+                    onClick={cancelEdit}
+                    disabled={updateVehicle.isPending}
+                  >
+                    <IconX size={18} />
+                  </ActionIcon>
+                </>
+              ) : (
+                <ActionIcon
+                  color="blue"
+                  variant="subtle"
+                  onClick={() => startEdit(vehicle)}
+                >
+                  <IconPencil size={18} />
+                </ActionIcon>
+              )}
+              <ActionIcon
+                color="red"
+                variant="subtle"
+                onClick={() => handleDeleteClick(vehicle)}
+              >
+                <IconTrash size={18} />
+              </ActionIcon>
+            </Group>
+          </Table.Td>
+        </Table.Tr>
+      );
+    });
 
   return (
     <Container size="lg" py="xl">
@@ -123,6 +222,12 @@ export const EditVehicles: React.FC = () => {
                 required
                 disabled={createVehicle.isPending}
                 {...form.getInputProps('name')}
+              />
+              <TextInput
+                label="GoTrack Vehicle ID"
+                placeholder="Optional"
+                disabled={createVehicle.isPending}
+                {...form.getInputProps('goTrackVehicleId')}
               />
               <Button
                 type="submit"
@@ -151,6 +256,7 @@ export const EditVehicles: React.FC = () => {
                 <Table.Tr>
                   <Table.Th>Name</Table.Th>
                   <Table.Th>Legacy ID</Table.Th>
+                  <Table.Th>GoTrack Vehicle ID</Table.Th>
                   <Table.Th>Actions</Table.Th>
                 </Table.Tr>
               </Table.Thead>

@@ -28,6 +28,7 @@ import { IconPlus } from '@tabler/icons-react';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { Link, useMatchRoute } from '@tanstack/react-router';
 import AllJobs from './components/Admin/AllJobs';
+import ufsLogo from './assets/ufs-logo.png';
 import { registerLogoutHandler } from './services/api';
 import { EditEmployees } from './components/Admin/EditEmployees';
 import { EditVehicles } from './components/Admin/EditVehicles';
@@ -74,9 +75,11 @@ function RootLayout() {
         <Group px="md" justify="space-between" h="100%">
           <Group>
             <Burger opened={opened} onClick={() => setOpened(!opened)} size="sm" />
-            <Text fw={700} size="lg">
-              UFS
-            </Text>
+            <img
+              src={ufsLogo}
+              alt="Unverfehrt Farm Supply"
+              style={{ height: 44, width: 'auto', objectFit: 'contain' }}
+            />
           </Group>
           <Group gap="sm">
             <Badge

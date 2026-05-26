@@ -76,6 +76,7 @@ export interface VehicleType {
   name: string;
   id: number;
   legacyId: string;
+  goTrackVehicleId?: string | null;
 }
 
 export interface SubcontractorType {

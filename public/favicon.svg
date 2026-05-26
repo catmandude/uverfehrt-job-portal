@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect x="0" y="0" width="512" height="512" fill="#C65A1E"/>
+  
+  <!-- Properly centered U -->
+  <text x="50%" y="50%"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        font-family="Arial Black, Helvetica, sans-serif"
+        font-weight="900"
+        font-size="340"
+        fill="#FFFFFF">U</text>
+</svg>

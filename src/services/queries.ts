@@ -151,7 +151,24 @@ export const useDeleteEmployee = () => {
 export const useCreateVehicle = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string }) => employeesApi.createVehicle(data),
+    mutationFn: (data: { name: string; goTrackVehicleId?: string | null }) =>
+      employeesApi.createVehicle(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+    },
+  });
+};
+
+export const useUpdateVehicle = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: { name?: string; legacyId?: string | null; goTrackVehicleId?: string | null };
+    }) => employeesApi.updateVehicle(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
     },

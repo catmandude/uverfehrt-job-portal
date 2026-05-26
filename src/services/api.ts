@@ -177,8 +177,16 @@ export const employeesApi = {
     return response.data;
   },
 
-  createVehicle: async (data: { name: string }): Promise<VehicleType> => {
+  createVehicle: async (data: { name: string; goTrackVehicleId?: string | null }): Promise<VehicleType> => {
     const response = await api.post('/vehicles', data);
+    return response.data;
+  },
+
+  updateVehicle: async (
+    id: number,
+    data: { name?: string; legacyId?: string | null; goTrackVehicleId?: string | null },
+  ): Promise<VehicleType> => {
+    const response = await api.put(`/vehicles/${id}`, data);
     return response.data;
   },
 

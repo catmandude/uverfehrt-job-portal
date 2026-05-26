@@ -2,6 +2,7 @@ import { RouterProvider } from '@tanstack/react-router';
 import { MantineProvider } from '@mantine/core';
 
 import { router } from './router';
+import { theme } from './theme/theme';
 import './App.css'
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
@@ -15,7 +16,7 @@ const queryClient = new QueryClient()
 
 function App() {
   return (
-    <MantineProvider>
+    <MantineProvider theme={theme}>
       <QueryClientProvider client={queryClient}>
         <Notifications position="top-right" />
         <RouterProvider router={router} />
